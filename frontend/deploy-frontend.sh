@@ -18,3 +18,7 @@ sudo systemctl restart nginx
 # Step 4: Confirmation message
 echo "Frontend deployment completed successfully!"
 
+# Step 5: Restart the backend
+echo "Restarting backend via PM2..."
+pm2 restart 1 
+
