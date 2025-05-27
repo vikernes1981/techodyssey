@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import postRoutes from './routes/index.js';
 import authRoutes from './routes/authRoutes.js';
 import snippetRoutes from './routes/snippetRoutes.js';
+import chatRoute from './routes/chat.js';
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
 app.use('/api/', postRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/', snippetRoutes);
-
+app.use('/api/', chatRoute);
 // Handle 404
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });
@@ -34,4 +35,5 @@ app.use((req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
