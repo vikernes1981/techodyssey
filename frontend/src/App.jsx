@@ -33,9 +33,9 @@ function App() {
           <Route path="/" element={<HomePage setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />} />
           <Route path="/saymellon" element={<LoginPage onLogin={setIsLoggedIn} />} />
 	  {/*<Route path="/register" element={<SignUpPage />} />*/}
-          <Route path="/create" element={isLoggedIn ? <CreatePostPage /> : <Navigate to="/login" />} />
+          <Route path="/create" element={isLoggedIn ? <CreatePostPage /> : <Navigate to="/saymellon" />} />
           <Route path="/entries/:id" element={<PostDetailsPage />} />
-          <Route path="/snippets" element={isLoggedIn ? <SnippetsPage /> : <Navigate to="/login" />} />
+          <Route path="/snippets" element={isLoggedIn ? <SnippetsPage /> : <Navigate to="/saymellon" />} />
           <Route path="/terminal-chat" element={isLoggedIn ? <TerminalChat /> : <Navigate to="/saymellon" />} />
           <Route
             path="/audiobooks"

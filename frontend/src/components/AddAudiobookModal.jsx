@@ -14,9 +14,7 @@ function AddAudiobookModal({ isOpen, onClose, onSave }) {
       const response = await fetch('https://techodyssey.org/audiobooks/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-admin-token': 'IamthekilleroftrollS',
-        },
+          'Content-Type': 'application/json'},
         body: JSON.stringify(newAudiobook),
       });
 
