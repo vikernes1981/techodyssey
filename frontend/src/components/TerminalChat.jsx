@@ -7,6 +7,8 @@ import remarkGfm from 'remark-gfm';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import Header from './Header';
+import rehypeSanitize from 'rehype-sanitize';
+
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -98,8 +100,8 @@ export default function TerminalChat() {
               <span className="text-green-400">$ {msg.content}</span>
             ) : (
               <div className="prose prose-invert prose-pre:bg-black prose-pre:text-white max-w-none">
-                <ReactMarkdown children={msg.content} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]} />
-              </div>
+               <ReactMarkdown children={msg.content} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight, rehypeSanitize]} />
+	      </div>
             )}
           </div>
         ))}
