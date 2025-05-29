@@ -6,6 +6,7 @@ import postRoutes from './routes/index.js';
 import authRoutes from './routes/authRoutes.js';
 import snippetRoutes from './routes/snippetRoutes.js';
 import chatRoute from './routes/chat.js';
+import messageRoutes from './routes/messageRoutes.js';
 
 dotenv.config();
 
@@ -26,6 +27,8 @@ app.use('/api/', postRoutes);
 app.use('/api/', authRoutes);
 app.use('/api/', snippetRoutes);
 app.use('/api/', chatRoute);
+app.use('/api/', messageRoutes);
+
 // Handle 404
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });

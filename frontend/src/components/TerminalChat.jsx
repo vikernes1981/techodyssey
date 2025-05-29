@@ -1,5 +1,3 @@
-// --- FRONTEND: TerminalChat.jsx ---
-
 import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import ReactMarkdown from 'react-markdown';
@@ -8,7 +6,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
 import Header from './Header';
 import rehypeSanitize from 'rehype-sanitize';
-
+import ManageMessagesModal from './ManageMessagesModal'; // <-- Add this
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -21,6 +19,7 @@ export default function TerminalChat() {
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // <-- Add this
 
   const handleScroll = () => {
     const el = scrollContainerRef.current;
@@ -93,6 +92,17 @@ export default function TerminalChat() {
     <div className="bg-black text-green-400 font-mono h-screen flex flex-col overflow-hidden relative">
       <Header />
 
+      {/* --- NEW BUTTON --- */}
+      <div className="w-full flex justify-center mt-4 mb-2">
+        <button
+          className="px-6 py-2 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 font-semibold"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Manage Saved Messages
+        </button>
+      </div>
+      {/* --- END BUTTON --- */}
+
       <div className="flex-1 overflow-y-auto px-4 pt-4" ref={scrollContainerRef} onScroll={handleScroll}>
         {messages.map((msg, i) => (
           <div key={i} className="whitespace-pre-wrap my-1">
@@ -100,8 +110,8 @@ export default function TerminalChat() {
               <span className="text-green-400">$ {msg.content}</span>
             ) : (
               <div className="prose prose-invert prose-pre:bg-black prose-pre:text-white max-w-none">
-               <ReactMarkdown children={msg.content} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight, rehypeSanitize]} />
-	      </div>
+                <ReactMarkdown children={msg.content} remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight, rehypeSanitize]} />
+              </div>
             )}
           </div>
         ))}
@@ -141,6 +151,10 @@ export default function TerminalChat() {
           <div className="text-red-400 font-bold">🚨 Max token limit exceeded — GPT may fail soon</div>
         )}
       </div>
+
+      {/* --- MODAL --- */}
+      <ManageMessagesModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {/* --- END MODAL --- */}
     </div>
   );
 }
