@@ -4,9 +4,6 @@ import { useNavigate } from 'react-router-dom';
 
 function Header({
   isLoggedIn,
-  onAddEntryClick = null,
-  onAddAudiobookClick = null,
-  onAddSnippetClick = null,
   setIsLoggedIn = null,
 }) {
   const navigate = useNavigate();
@@ -45,30 +42,6 @@ function Header({
 
       {/* Desktop: Full menu */}
       <div className="hidden sm:flex items-center space-x-4">
-        {isLoggedIn && onAddEntryClick && (
-          <button
-            onClick={onAddEntryClick}
-            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Add Entry
-          </button>
-        )}
-        {isLoggedIn && onAddAudiobookClick && (
-          <button
-            onClick={onAddAudiobookClick}
-            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Add Audiobook
-          </button>
-        )}
-        {isLoggedIn && onAddSnippetClick && (
-          <button
-            onClick={onAddSnippetClick}
-            className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-          >
-            Add Snippet
-          </button>
-        )}
         {isLoggedIn && (
           <button
             onClick={handleLogoutClick}
@@ -77,20 +50,7 @@ function Header({
             Logout
           </button>
         )}
-        {isLoggedIn && (
-          <button
-            onClick={() => navigate('/snippets')}
-            className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
-          >
-            Snippets
-          </button>
-        )}
-        <button
-          onClick={() => navigate('/audiobooks')}
-          className="bg-orange-500 px-4 py-2 rounded hover:bg-yellow-600"
-        >
-          Audiobooks
-        </button>
+
         {isLoggedIn && (
           <button
             onClick={() => navigate('/terminal-chat')}
@@ -104,39 +64,6 @@ function Header({
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="sm:hidden absolute top-16 right-4 bg-gray-700 rounded shadow-md p-4 space-y-2 z-50 w-48">
-          {isLoggedIn && onAddEntryClick && (
-            <button
-              onClick={() => {
-                onAddEntryClick();
-                setMenuOpen(false);
-              }}
-              className="block w-full text-left bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add Entry
-            </button>
-          )}
-          {isLoggedIn && onAddAudiobookClick && (
-            <button
-              onClick={() => {
-                onAddAudiobookClick();
-                setMenuOpen(false);
-              }}
-              className="block w-full text-left bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add Audiobook
-            </button>
-          )}
-          {isLoggedIn && onAddSnippetClick && (
-            <button
-              onClick={() => {
-                onAddSnippetClick();
-                setMenuOpen(false);
-              }}
-              className="block w-full text-left bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
-            >
-              Add Snippet
-            </button>
-          )}
           {isLoggedIn && (
             <button
               onClick={handleLogoutClick}
@@ -145,20 +72,6 @@ function Header({
               Logout
             </button>
           )}
-          {isLoggedIn && (
-            <button
-              onClick={() => handleNav('/snippets')}
-              className="block w-full text-left bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
-            >
-              Snippets
-            </button>
-          )}
-          <button
-            onClick={() => handleNav('/audiobooks')}
-            className="block w-full text-left bg-orange-500 px-4 py-2 rounded hover:bg-yellow-600"
-          >
-            Audiobooks
-          </button>
           {isLoggedIn && (
             <button
               onClick={() => handleNav('/terminal-chat')}

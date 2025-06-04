@@ -7,8 +7,7 @@
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    "test": "NODE_ENV=test DB_FILE=./data/blog.test.db CHAT_DB_FILE=./data/chat.test.db node --test tests/"  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -21,9 +20,9 @@
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "openai": "^4.102.0",
-    "pg": "^8.13.0",
     "sqlite": "^5.1.1",
     "sqlite3": "^5.1.7",
+    "supertest": "^7.1.1",
     "tiktoken": "^1.0.21"
   }
 }
