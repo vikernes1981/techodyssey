@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
 import Header from './Header';
-import EntryList from './EntryList';
-import AddEntryModal from './AddEntryModal';
-import { getPosts } from '../services/postService';
+// import EntryList from './EntryList';
+// import AddEntryModal from './AddEntryModal';
+// import { getPosts } from '../services/postService';
 
 function HomePage({ setIsLoggedIn, isLoggedIn }) {
   const [entries, setEntries] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const data = await getPosts(); // Fetch posts using postService
-        setEntries(data);
-      } catch (error) {
-        console.error('Failed to fetch posts:', error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchPosts = async () => {
+  //     try {
+  //       const data = await getPosts(); // Fetch posts using postService
+  //       setEntries(data);
+  //     } catch (error) {
+  //       console.error('Failed to fetch posts:', error);
+  //     }
+  //   };
 
-    fetchPosts();
-  }, []);
+  //   fetchPosts();
+  // }, []);
 
   const handleAddEntryClick = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -36,7 +36,7 @@ function HomePage({ setIsLoggedIn, isLoggedIn }) {
         onAddEntryClick={isLoggedIn ? handleAddEntryClick : null} // "Add Entry" button only for logged-in users
         setIsLoggedIn={isLoggedIn ? setIsLoggedIn : null} // Logout button only for logged-in users
       />
-      <EntryList entries={entries} />
+      {/* <EntryList entries={entries} /> */}
       {isModalOpen && (
         <AddEntryModal
           isOpen={isModalOpen}

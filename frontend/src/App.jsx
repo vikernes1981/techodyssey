@@ -3,12 +3,12 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 // import SignUpPage from './components/SignUpPage';
-import CreatePostPage from './components/CreatePostPage';
-import PostDetailsPage from './components/PostDetailsPage';
+// import CreatePostPage from './components/CreatePostPage';
+// import PostDetailsPage from './components/PostDetailsPage';
 import Footer from './components/Footer';
-import SnippetsPage from './components/SnippetsPage';
-import AudiobookDashboard from './components/AudiobookDashboard';
-import AudiobookDetailsPage from './components/AudiobookDetailsPage';
+// import SnippetsPage from './components/SnippetsPage';
+// import AudiobookDashboard from './components/AudiobookDashboard';
+// import AudiobookDetailsPage from './components/AudiobookDetailsPage';
 import TerminalChat from './components/TerminalChat';
 
 function App() {
@@ -33,11 +33,11 @@ function App() {
           <Route path="/" element={<HomePage setIsLoggedIn={setIsLoggedIn} isLoggedIn={isLoggedIn} />} />
           <Route path="/saymellon" element={<LoginPage onLogin={setIsLoggedIn} />} />
 	  {/*<Route path="/register" element={<SignUpPage />} />*/}
-          <Route path="/create" element={isLoggedIn ? <CreatePostPage /> : <Navigate to="/saymellon" />} />
-          <Route path="/entries/:id" element={<PostDetailsPage />} />
-          <Route path="/snippets" element={isLoggedIn ? <SnippetsPage /> : <Navigate to="/saymellon" />} />
+          {/* <Route path="/create" element={isLoggedIn ? <CreatePostPage /> : <Navigate to="/saymellon" />} /> */}
+          {/* <Route path="/entries/:id" element={<PostDetailsPage />} /> */}
+          {/* <Route path="/snippets" element={isLoggedIn ? <SnippetsPage /> : <Navigate to="/saymellon" />} /> */}
           <Route path="/terminal-chat" element={isLoggedIn ? <TerminalChat /> : <Navigate to="/saymellon" />} />
-          <Route
+          {/* <Route
             path="/audiobooks"
             element={
               <AudiobookDashboard
@@ -45,8 +45,8 @@ function App() {
                 isLoggedIn={isLoggedIn}
               />
             }
-          />
-          <Route
+          /> */}
+          {/* <Route
             path="/audiobooks/:id"
             element={
               <AudiobookDetailsPage
@@ -54,7 +54,7 @@ function App() {
                 isLoggedIn={isLoggedIn}
               />
             }
-          />
+          /> */}
         </Routes>
         <Footer />
       </div>

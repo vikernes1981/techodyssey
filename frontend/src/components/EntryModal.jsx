@@ -1,5 +1,5 @@
 import  { useState } from 'react';  
-import EntryModal from './EntryModal';  
+//import EntryModal from './EntryModal';  
 
 function ParentComponent() {  
   const [isOpen, setIsOpen] = useState(false);  

@@ -120,11 +120,11 @@ function SnippetsPage() {
         onDelete={handleDeleteSnippet}
       />
 
-      {/* Add Snippet Modal */}
       {isAddModalOpen && (
         <AddSnippetModal
-          setIsModalOpen={setIsAddModalOpen} // Pass correct state setter
-          setSnippets={setSnippets} // Pass correct snippet updater
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSave={handleAddSnippet}
         />
       )}
 

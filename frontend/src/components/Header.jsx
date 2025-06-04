@@ -45,7 +45,7 @@ function Header({
 
       {/* Desktop: Full menu */}
       <div className="hidden sm:flex items-center space-x-4">
-        {isLoggedIn && onAddEntryClick && (
+        {/* {isLoggedIn && onAddEntryClick && (
           <button
             onClick={onAddEntryClick}
             className="bg-blue-500 px-4 py-2 rounded hover:bg-blue-600"
@@ -68,7 +68,7 @@ function Header({
           >
             Add Snippet
           </button>
-        )}
+        )} */}
         {isLoggedIn && (
           <button
             onClick={handleLogoutClick}
@@ -77,7 +77,7 @@ function Header({
             Logout
           </button>
         )}
-        {isLoggedIn && (
+        {/* {isLoggedIn && (
           <button
             onClick={() => navigate('/snippets')}
             className="bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
@@ -90,7 +90,7 @@ function Header({
           className="bg-orange-500 px-4 py-2 rounded hover:bg-yellow-600"
         >
           Audiobooks
-        </button>
+        </button> */}
         {isLoggedIn && (
           <button
             onClick={() => navigate('/terminal-chat')}
@@ -104,7 +104,7 @@ function Header({
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="sm:hidden absolute top-16 right-4 bg-gray-700 rounded shadow-md p-4 space-y-2 z-50 w-48">
-          {isLoggedIn && onAddEntryClick && (
+          {/* {isLoggedIn && onAddEntryClick && (
             <button
               onClick={() => {
                 onAddEntryClick();
@@ -136,7 +136,7 @@ function Header({
             >
               Add Snippet
             </button>
-          )}
+          )} */}
           {isLoggedIn && (
             <button
               onClick={handleLogoutClick}
@@ -145,7 +145,7 @@ function Header({
               Logout
             </button>
           )}
-          {isLoggedIn && (
+          {/* {isLoggedIn && (
             <button
               onClick={() => handleNav('/snippets')}
               className="block w-full text-left bg-yellow-500 px-4 py-2 rounded hover:bg-yellow-600"
@@ -158,7 +158,7 @@ function Header({
             className="block w-full text-left bg-orange-500 px-4 py-2 rounded hover:bg-yellow-600"
           >
             Audiobooks
-          </button>
+          </button> */}
           {isLoggedIn && (
             <button
               onClick={() => handleNav('/terminal-chat')}
