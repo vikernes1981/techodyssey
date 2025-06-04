@@ -92,13 +92,13 @@ const AudiobookDetailsPage = () => {
                 onClick={() => setIsModalOpen(true)}
                 className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-800"
               >
-                Update Audiobook
+                Update
               </button>
               <button
                 onClick={handleDelete}
                 className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-800"
               >
-                Delete Audiobook
+                Delete
               </button>
             </>
           ) : null}
@@ -106,7 +106,7 @@ const AudiobookDetailsPage = () => {
             to="/audiobooks"
             className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-800"
           >
-            Back to Audiobooks
+            Back
           </Link>
         </div>
       </div>
