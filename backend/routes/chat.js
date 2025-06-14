@@ -1,46 +1,18 @@
-// --- BACKEND: chat.js ---
-
 import express from 'express';
 import OpenAI from 'openai';
-import sqlite3 from 'sqlite3';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { chatDb } from '../db.js';  // <-- Import the new chatDb
 import dotenv from 'dotenv';
-import fs from 'fs';
 dotenv.config();
 
-const router = express.Router();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const dbDir = path.resolve(__dirname, '../data');
-if (!fs.existsSync(dbDir)) fs.mkdirSync(dbDir, { recursive: true });
-
-const db = new sqlite3.Database(path.join(dbDir, 'chat.db'));
-db.run(`CREATE TABLE IF NOT EXISTS messages (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  conversation_id TEXT NOT NULL,
-  role TEXT NOT NULL,
-  content TEXT NOT NULL,
-  tokens_input INTEGER,
-  tokens_output INTEGER,
-  cost REAL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-)`);
-
-db.run(`CREATE TABLE IF NOT EXISTS usage_log (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  input_tokens INTEGER,
-  output_tokens INTEGER,
-  cost REAL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-)`);
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 import { encoding_for_model } from 'tiktoken';
 const enc = encoding_for_model('gpt-4');
 const USD_PER_1K_INPUT = 0.01;
 const USD_PER_1K_OUTPUT = 0.03;
 const USD_TO_EUR = 0.93;
+
+const router = express.Router();
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 let memoryInjected = false;
 let rememberedContext = [];
@@ -54,23 +26,21 @@ router.post('/chat', async (req, res) => {
   const sanitized = cleaned?.replace(/[\x00-\x1F\x7F]+/g, '').trim();
 
   if (isSaveCall) {
-    db.run(
+    await chatDb.run(
       `INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)`,
-      ['main', 'user', sanitized]
+      'main', 'user', sanitized
     );
   }
 
   if (!memoryInjected || isSaveCall) {
-    rememberedContext = await new Promise((resolve, reject) => {
-      db.all(`SELECT role, content FROM messages WHERE conversation_id = ?`, ['main'], (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
-      });
-    });
+    rememberedContext = await chatDb.all(
+      `SELECT role, content FROM messages WHERE conversation_id = ?`,
+      'main'
+    );
     memoryInjected = true;
   }
 
-  const systemBase = 'You are an economics guru and a coding god. The date is May 2025. Be concise and practical.';
+  const systemBase = 'You are an economics guru and a coding god. The year is 2025. Be concise and practical.';
   const memoryBlock = rememberedContext.map(r => `User: ${r.content}`).join('\n');
   const composedSystem = {
     role: 'system',
@@ -93,9 +63,9 @@ router.post('/chat', async (req, res) => {
     const totalCostEUR = (inputCost + outputCost) * USD_TO_EUR;
 
     // Track usage log regardless of memory save
-    db.run(
+    await chatDb.run(
       `INSERT INTO usage_log (input_tokens, output_tokens, cost) VALUES (?, ?, ?)`,
-      [inputTokens, outputTokens, totalCostEUR]
+      inputTokens, outputTokens, totalCostEUR
     );
 
     res.json({
@@ -113,12 +83,13 @@ router.post('/chat', async (req, res) => {
 });
 
 // GET /usage-total
-router.get('/usage-total', (req, res) => {
-  db.get(`SELECT SUM(cost) as total FROM usage_log`, (err, row) => {
-    if (err) return res.status(500).json({ error: 'Failed to fetch usage total' });
+router.get('/usage-total', async (req, res) => {
+  try {
+    const row = await chatDb.get(`SELECT SUM(cost) as total FROM usage_log`);
     res.json({ total: row.total || 0 });
-  });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch usage total' });
+  }
 });
 
 export default router;
-

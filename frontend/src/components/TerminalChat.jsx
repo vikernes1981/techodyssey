@@ -153,7 +153,7 @@ export default function TerminalChat() {
       </div>
 
       {/* --- MODAL --- */}
-      <ManageMessagesModal open={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ManageMessagesModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
       {/* --- END MODAL --- */}
     </div>
   );

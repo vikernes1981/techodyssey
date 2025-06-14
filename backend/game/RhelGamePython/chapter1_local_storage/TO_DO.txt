@@ -1,0 +1,81 @@
+ CREATED FUNCTIONS:
+ 
+Assign physical volumes to volume groups
+
+     check_remove_physical_volume_command               #vgreduce vg /dev/* : Remove a physical volume (here /dev/*) from an existing volume group (here vg)
+     check_view_volume_groups_command                   #vgs List of the volume groups
+     check_remove_volume_group_command                  #vgremove vg : Remove an existing volume group (here called vg)
+     check_extend_volume_group_command                  #vgextend vg /dev/* : Add a physical volume (here /dev/*) to an existing volume group (here vg)
+     check_create_volume_group_command                  #vgcreate -s 8m vg /dev/* : Create a volume group (here called vg using a physical volume /dev/vda)
+ 
+
+It will Create and delete logical volumes
+
+     check_remove_logical_volume_command                #lvremove /dev/vg1/lv1 : /dev/vg1/lv1 is the LV path
+     check_resize_logical_volume_command                #lvresize -L-1G /dev/vg1/lv1 : Shrink the logical volume (use caution as this can cause data loss)
+     check_create_logical_volume_command                #lvcreate -L 4G -n lv1 vg1 : Create the logical volume and set the size
+     check_extend_logical_volume_command                #lvextend -L+1G /dev/vg1/lv1 : To extend the logical volume
+     check_view_logical_volume_command                  #lvs OR lvdisplay : View logical volumes
+ 
+
+List, create, delete partitions on MBR and GPT disks
+
+     check_force_partition_check_command                #partprobe : Force system to check for partition changes
+     check_disks_partitions_command                     #lsblk : Get disks and paritions in a tree output
+     check_uuid_command                                 #blkid : Get UUID for partitions and drives / blkid -s UUID -o value >> /etc/fstab : copy UUID to /etc/fstab 
+     check_disk_space_command                           #df -h  :    List size / used and available space / % / mount point
+
+
+Create and remove physical volumes
+
+    view_physical_volumes                               #pvdisplay : View physical volumes
+    create_physical_volume                              #pvcreate /dev/sdb1 : Create LVM physical volume
+    remove_physical_volume                              #pvremove /dev/sdb1 : Remove physical volume
+
+
+Use fdisk to create/delete/view partitions  
+
+     simulate_fdisk_l                                    #fdisk -l : Show all physical disks
+     display_help                                        #fdisk /dev/* : Work on /dev/* block
+     create_partition                                    #fdisk options :
+     delete_partition                                    #o : Create a new DOS partiton table
+     display_partitions                                  #p : Print partition tables
+                                                         #w : Write changes
+                                                         #n : New partition
+                                                         #t : Partition type
+                                                         #8e : LVM
+                                                         #82 : Linux Swap
+
+create_ext4_on_lvm()                                     #mkfs.ext4 /dev/vg1/lv1 : Create ext4 filesystem on the logical volume
+
+
+### Mount with UUID ###
+
+provide_uuid_line()                                      #UUID="copied uuid" /mnt ext4 defaults 1 2 : Edit the /etc/fstab file and change the new added line with the correct parameters
+edit_fstab()                                             #cd /etc/fstab vim fstab : Navigate and edit fstab
+mount_partition()                                        #mount /mnt OR mount -a : Mount the disk or partition
+
+
+
+MOUNT WITH LABEL
+
+check_e2label_tune2fs_command()                          #e2label /dev/vdb1 TEST OR tune2fs -L TEST /dev/vdb1 : Assign a label to a disk or partition (here /dev/vdb1)
+get_label()                                              #e2label /dev/vdb1 : Get the label associated with a disk or a partition
+                                                         #LABEL=TEST /mnt ext4 defaults 1 2 : To mount an ext4 formatted partition (here /dev/vdb1)
+ 
+
+### LV SWAP PARTITION ###
+
+lv_swap_partition_creation() :                           #mkswap /dev/vg/lv_swap : Prepare the swap logical volume
+                                                         #swapon /dev/vg/lv_swap OR  swapon -a : Add the swap logical volume to the system
+                                                         #swapon -s : Check the result
+                                                         #swapoff /dev/vg/lv_swap : Unmounts swap partition
+
+                                                         #umount /mnt/point : If mounted remove with umount
+
+
+
+
+
+
+

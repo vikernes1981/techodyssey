@@ -1,0 +1,59 @@
+import slow_validInput
+
+
+def challenge_configure_boot():
+    """
+    Challenge: Configure systems to boot into a specific target automatically
+    """
+    try:
+        # Challenge Introduction
+        slow_validInput.print_slow(
+            "\n\nOlivia faces her next challenge: configuring the systems to boot into a specific target automatically.\n")
+        slow_validInput.print_slow(
+            "As the deployment reaches its peak, Olivia realizes the necessity of ensuring the systems ")
+        slow_validInput.print_slow(
+            "boot into the correct target without manual intervention. This is crucial for maintaining ")
+        slow_validInput.print_slow(
+            "the stability and reliability of the AI-driven analytics platform.\n")
+
+        # Configuring Boot Targets
+        slow_validInput.print_slow(
+            "With determination in her heart, Olivia delves into the intricacies of system boot configuration.")
+        slow_validInput.print_slow(
+            "She navigates through the labyrinth of boot loaders and configuration files, ")
+        slow_validInput.print_slow(
+            "meticulously setting the default boot target for each server.")
+        slow_validInput.print_slow(
+            "Through a series of precise commands and edits, she ensures that every reboot will seamlessly ")
+        slow_validInput.print_slow(
+            "transition the systems into the desired operational state.\n")
+
+        # Overcoming Challenges
+        slow_validInput.print_slow(
+            "Yet, as with any endeavor in the cyber realm, challenges abound.")
+        slow_validInput.print_slow(
+            "Olivia encounters resistance from unexpected sources: obscure boot loader errors, ")
+        slow_validInput.print_slow(
+            "cryptic configuration conflicts, and the ever-looming specter of unintended consequences.")
+        slow_validInput.print_slow(
+            "But with her expertise and resourcefulness, she tackles each obstacle head-on, ")
+        slow_validInput.print_slow(
+            "unraveling the complexities and forging solutions in the fires of determination.\n")
+
+        # Triumph
+        slow_validInput.print_slow(
+            "As the last line of configuration is written, Olivia breathes a sigh of relief.")
+        slow_validInput.print_slow(
+            "The systems now stand poised to fulfill their duty, booting into the designated target ")
+        slow_validInput.print_slow(
+            "with the precision of a well-oiled machine.")
+        slow_validInput.print_slow(
+            "Her perseverance has once again proven invaluable, ")
+        slow_validInput.print_slow(
+            "her expertise shining as a beacon of hope amidst the digital tempest.\n")
+
+        input("Press Enter to continue your journey...")
+
+    except KeyboardInterrupt:
+        slow_validInput.print_slow("\nGame interrupted. Exiting...")
+        exit()
