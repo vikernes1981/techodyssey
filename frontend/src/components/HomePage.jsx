@@ -20,31 +20,16 @@ const HomePage = () => {
   };
 
   const QA = [
-    {
-      user: "whoami",
-      assistant: "Iordanis Tsitsirikos",
-    },
-    {
-      user: "role",
-      assistant: "Backend Developer & Linux Enthusiast",
-    },
+    { user: "whoami", assistant: "Iordanis Tsitsirikos" },
+    { user: "role", assistant: "Backend Developer & Linux Enthusiast" },
     {
       user: "about",
       assistant:
         "I'm a backend-focused developer with a system admin mindset. I build tools that solve problems — sometimes for fun, sometimes because someone was stealing my overtime. My strength lies in understanding how systems work under the hood. I prefer working close to the metal: backend APIs, command-line tools, file structures, authentication, voice interfaces, or whatever else needs wiring. Most of what you’ll see here was built alone, from scratch, without a template. I don't chase trends. I chase working solutions. I like building things I actually use. If I don't use it, I probably deleted it.",
     },
-    {
-      user: "contact",
-      assistant: "joe_tsitsirikos@mail.techodyssey.org",
-    },
-    {
-      user: "github",
-      assistant: "https://github.com/vikernes1981",
-    },
-    {
-      user: "projects",
-      assistant: "Listing all available projects...",
-    },
+    { user: "contact", assistant: "joe_tsitsirikos@mail.techodyssey.org" },
+    { user: "github", assistant: "https://github.com/vikernes1981" },
+    { user: "projects", assistant: "Listing all available projects..." },
   ];
 
   useEffect(() => {
@@ -81,10 +66,13 @@ const HomePage = () => {
   });
 
   return (
-    <div className="flex flex-col justify-start items-start w-screen h-screen p-8 bg-black text-green-400 font-mono text-base overflow-y-auto">
+    <div
+      ref={terminalRef}
+      className="flex flex-col justify-start items-start w-full min-h-screen px-4 py-8 bg-black text-green-400 font-mono text-sm sm:text-base overflow-x-hidden break-words"
+    >
       {QA.slice(0, step + 1).map((qa, index) => (
-        <div key={index}>
-          <div className="mb-2">
+        <div key={index} className="mb-4 w-full">
+          <div className="mb-1">
             <span className="text-green-400">$ </span>
             {index === step ? typedText : qa.user}
           </div>
@@ -100,8 +88,7 @@ const HomePage = () => {
       ))}
 
       {done && (
-        <div className="flex flex-col justify-start items-start w-screen h-screen p-8 bg-black text-green-400 font-mono text-base overflow-y-auto"> 
-
+        <div className="flex flex-col items-start w-full mt-6 space-y-4">
           {projects.map((proj, i) => (
             <div key={i} className="ml-4 text-green-400">
               {proj.id.padEnd(18)} — {proj.description}
@@ -128,3 +115,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+
