@@ -3,8 +3,8 @@
 import { Router } from 'express';
 import { processMissionAttempt, getMissionById } from '../services/rhcsaGameService.js';
 import intro from '../data/intro.js'; 
-import quest1 from '../data/challenge1/challenge_1.js';
-import partitions_filesystem from '../data/missions/partitions_filesystem.js';
+import quest1 from '../data/chapters/chapter1/challenges/challenge_1.js';
+import partitions_filesystem from '../data/chapters/chapter1/challenges/missions/partitions_filesystem.js'; 
 
 const router = Router();
 
@@ -16,11 +16,11 @@ router.get('/mission/:id', (req, res) => {
   res.json({ mission });
 });
 
-router.get('/mission-briefing', (req, res) => {
-  // For now, just send the first quest; you can expand to multi-quest later.
-  const { story, briefing, prompt } = quest1;
-  res.json({ story, briefing, prompt });
-});
+// router.get('/mission-briefing', (req, res) => {
+//   // For now, just send the first quest; you can expand to multi-quest later.
+//   const { story, briefing, prompt } = quest1;
+//   res.json({ story, briefing, prompt });
+// });
 
 // POST /api/rhcsa-game
 router.post('/', (req, res) => {

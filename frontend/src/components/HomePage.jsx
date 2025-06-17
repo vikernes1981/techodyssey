@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ProjectModal from "./ProjectModal";
 import { projects } from "./projects";
+import Header from "./Header";
 
 const HomePage = () => {
   const terminalRef = useRef(null);
@@ -66,10 +67,7 @@ const HomePage = () => {
   });
 
   return (
-    <div
-      ref={terminalRef}
-      className="flex flex-col justify-start items-start w-full min-h-screen px-4 py-8 bg-black text-green-400 font-mono text-sm sm:text-base overflow-x-hidden break-words"
-    >
+    <div ref={terminalRef} className="flex flex-col justify-start items-start w-full min-h-screen px-4 py-8 p-14 bg-black text-green-400 font-mono text-sm sm:text-base overflow-x-hidden break-words">
       {QA.slice(0, step + 1).map((qa, index) => (
         <div key={index} className="mb-4 w-full">
           <div className="mb-1">

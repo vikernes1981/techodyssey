@@ -9,13 +9,6 @@ function Header({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleLogoutClick = () => {
-    localStorage.removeItem('token');
-    if (setIsLoggedIn) setIsLoggedIn(false);
-    navigate('/');
-    window.location.reload();
-  };
-
   const handleNav = (path) => {
     navigate(path);
     setMenuOpen(false);
@@ -41,45 +34,24 @@ function Header({
       </div>
 
       {/* Desktop: Full menu */}
-      <div className="hidden sm:flex items-center space-x-4">
-        {isLoggedIn && (
-          <button
-            onClick={handleLogoutClick}
-            className="bg-red-500 px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        )}
-
-        {isLoggedIn && (
-          <button
-            onClick={() => navigate('/terminal-chat')}
-            className="bg-purple-500 px-4 py-2 rounded hover:bg-purple-600"
-          >
-            Terminal Chat
-          </button>
-        )}
+      <div className="hidden sm:inline-block ml-1 align-middle">
+        <button
+          onClick={() => navigate('/terminal-chat')}
+          className="ml-1 px-4 py-2 rounded hover:bg-green-600"
+          style={{ marginLeft: '4px' }}
+        >
+          Rhel Game
+        </button>
       </div>
-
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="sm:hidden absolute top-16 right-4 bg-gray-700 rounded shadow-md p-4 space-y-2 z-50 w-48">
-          {isLoggedIn && (
-            <button
-              onClick={handleLogoutClick}
-              className="block w-full text-left bg-red-500 px-4 py-2 rounded hover:bg-red-600"
-            >
-              Logout
-            </button>
-          )}
-          {isLoggedIn && (
-            <button
-              onClick={() => handleNav('/terminal-chat')}
-              className="block w-full text-left bg-purple-500 px-4 py-2 rounded hover:bg-purple-600"
-            >
-              Terminal Chat
-            </button>
-          )}
+          <button
+            onClick={() => handleNav('/terminal-chat')}
+            className="block w-full text-left bg-purple-500 px-4 py-2 rounded hover:bg-purple-600"
+          >
+            Terminal Chat
+          </button>
         </div>
       )}
     </header>

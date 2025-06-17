@@ -1,7 +1,7 @@
 // services/rhcsaGameService.js
 
-import challenge_1 from '../data/challenge1/challenge_1.js';
-import partitions_filesystem from '../data/missions/partitions_filesystem.js';
+import challenge_1 from '../data/chapters/chapter1/challenges/challenge_1.js';
+import partitions_filesystem from '../data/chapters/chapter1/challenges/missions/partitions_filesystem.js';
 
 /**
  * Returns the mission object by its ID from challenge_1.

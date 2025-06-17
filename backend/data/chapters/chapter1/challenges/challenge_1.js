@@ -1,4 +1,4 @@
-import partitions_filesystem from '../missions/partitions_filesystem.js';
+import partitions_filesystem from './missions/partitions_filesystem.js';
 
 export default {
   questNumber: 1,

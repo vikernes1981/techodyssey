@@ -5,7 +5,7 @@ export const projects = [
     description: "Terminal interface & AI logic playground",
     stack: ["React", "Express", "GPT-4", "SQLite"],
     github: "https://github.com/vikernes1981/techodyssey",
-    live: "https://blog.techodyssey.org/terminal-chat",
+    live: "http://localhost:5173/terminal-chat",
     content:
       "TechOdyssey is an interactive terminal-style portfolio and AI experiment sandbox. It simulates a Linux shell, handles token-based GPT interactions, supports command validation, and displays dynamic project data. All content is loaded in a retro terminal UI built from scratch with React. The assistant interface includes token tracking, typing delay simulation, soft caps, and real-time feedback. It's both a showcase and a functional environment — all running in the browser.",
   },
