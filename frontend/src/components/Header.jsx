@@ -22,10 +22,10 @@ function Header({
   };
 
   return (
-    <header className="flex justify-between items-center p-4 bg-gray-800 text-white relative">
+    <header className="fixed top-0 left-0 w-full pt-0 z-20 bg-black border-b border-green-700">
       <button
         onClick={() => navigate('/')}
-        className="bg-green-500 px-4 py-2 rounded hover:bg-green-600"
+        className=" px-4 py-2 rounded hover:bg-green-600"
       >
         Home
       </button>

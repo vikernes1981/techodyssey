@@ -6,15 +6,19 @@ import authRoutes from './routes/authRoutes.js';
 import chatRoute from './routes/chat.js';
 import messageRoutes from './routes/messageRoutes.js';
 import gpt from './routes/gpt.js';
+import rhcsaGameRoute from './routes/rhcsaGameRoute.js';
+
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
 const allowedOrigins = [
   'http://localhost:5173', // for local dev
   'https://blog.techodyssey.org',
 ];
+
 // Middleware
 app.use(helmet()); // Add security headers
 app.use(cors({
@@ -22,13 +26,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
 }));
-app.use(express.json({ limit: '10mb' })); // Limit JSON payload size
+app.use(express.json()); // Limit JSON payload size
 
 // Routes
 app.use('/api/', authRoutes);
 app.use('/api/', chatRoute);
 app.use('/api/', messageRoutes);
 app.use("/api/gpt", gpt);
+app.use('/api/rhcsa-game', rhcsaGameRoute);
 
 // Handle 404
 app.use((req, res, next) => {
