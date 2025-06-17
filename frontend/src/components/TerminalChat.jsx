@@ -8,9 +8,10 @@ import Header from './Header';
 import rehypeSanitize from 'rehype-sanitize';
 import ManageMessagesModal from './ManageMessagesModal';
 import TerminalMessages from './TerminalMessages';
-
+console.log("API_BASE_URL (build):", import.meta.env.VITE_API_BASE_URL);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 const HEADER_HEIGHT = 56; // <--- Set this to your header's exact px height!
+console.log("API_BASE_URL (runtime):", API_BASE_URL);
 
 export default function TerminalChat() {
   const [messages, setMessages] = useState([]);
@@ -19,6 +20,8 @@ export default function TerminalChat() {
   const scrollContainerRef = useRef(null);
   const inputRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const skipCurrentTypingRef = useRef(null);
+
 
   // Game logic/state
   const [gameStage, setGameStage] = useState('intro');
@@ -62,12 +65,14 @@ export default function TerminalChat() {
           ]);
           setTypingAssistant(true);
         })
-        .catch(() => {
-          setMessages([
-            { role: 'assistant', content: 'Error loading intro.' }
-          ]);
-          setTypingAssistant(true);
-        });
+        .catch((err) => {
+            alert("AXIOS ERROR: " + (err && err.message ? err.message : JSON.stringify(err)));
+            setMessages([
+              { role: 'assistant', content: 'Error loading intro.' }
+            ]);
+            setTypingAssistant(true);
+          });
+
     }
     if (gameStage === 'options') {
       axios.get(`${API_BASE_URL}/rhcsa-game/options`)
@@ -277,15 +282,30 @@ export default function TerminalChat() {
       </div>
 
       {/* Main scrollable chat area */}
-      <div className="flex-1 overflow-y-auto text-green-400 pt-14 px-4 min-h-0" ref={scrollContainerRef} onScroll={handleScroll}>
-        <TerminalMessages
-          messages={messages}
-          typingAssistant={typingAssistant}
-          onAssistantDone={handleAssistantDone}
-          scrollContainerRef={scrollContainerRef}
-          bottomRef={bottomRef}
-          headerOffset={HEADER_HEIGHT}
-        />
+      <div
+          className="flex-1 overflow-y-auto text-green-400 pt-14 px-4 min-h-0"
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          onClick={() => {
+            if (typingAssistant && skipCurrentTypingRef.current) {
+              skipCurrentTypingRef.current();
+            }
+          }}
+          onTouchStart={() => {
+            if (typingAssistant && skipCurrentTypingRef.current) {
+              skipCurrentTypingRef.current();
+            }
+          }}
+        >
+          <TerminalMessages
+            messages={messages}
+            typingAssistant={typingAssistant}
+            onAssistantDone={handleAssistantDone}
+            scrollContainerRef={scrollContainerRef}
+            bottomRef={bottomRef}
+            headerOffset={HEADER_HEIGHT}
+            skipCurrentTypingRef={skipCurrentTypingRef}
+          />
 
         {/* Option buttons */}
         {gameStage === 'options' && allMessagesRevealed && (

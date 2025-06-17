@@ -17,7 +17,15 @@ const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
   'http://localhost:5173', // for local dev
   'https://blog.techodyssey.org',
+  'http://192.168.0.84',
 ];
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+  res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, content-type, Authorization");
+  next();
+});
 
 // Middleware
 app.use(helmet()); // Add security headers
@@ -49,8 +57,9 @@ app.use((err, req, res, next) => {
 
 // Start the server
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
+  
+  app.listen(5000, '0.0.0.0', () => {
+  console.log('Server running on http://0.0.0.0:5000');
+});
 }
 export default app;
