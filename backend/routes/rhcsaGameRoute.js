@@ -1,29 +1,67 @@
 // routes/rhcsaGameRoute.js
 
 import { Router } from 'express';
-import { processMissionAttempt, getMissionById } from '../services/rhcsaGameService.js';
 import intro from '../data/intro.js'; 
-import quest1 from '../data/chapters/chapter1/challenges/challenge_1.js';
-import partitions_filesystem from '../data/chapters/chapter1/challenges/missions/partitions_filesystem.js'; 
+import {
+  processMissionAttempt,
+  getMissionById,
+  getAllChapters,
+  getChapterById,
+  getChallengesByChapterId,
+  getChallengeById,
+  getMissionsByChallengeId
+} from '../services/rhcsaGameService.js';
 
 const router = Router();
 
-router.get('/mission/:id', (req, res) => {
-  const mission = partitions_filesystem.find(m => m.id === req.params.id);
+// Get game intro
+router.get('/intro', (req, res) => {
+  res.json({ intro }); 
+});
+
+// Get all chapters
+router.get('/chapters', (req, res) => {
+  const chapters = getAllChapters();
+  res.json(chapters);
+});
+
+// Get one chapter by ID (full object)
+router.get('/chapters/:chapterId', (req, res) => {
+  const chapter = getChapterById(req.params.chapterId);
+  if (!chapter) return res.status(404).json({ error: "Chapter not found" });
+  res.json(chapter);
+});
+
+// Get all challenges for a chapter
+router.get('/challenges/:chapterId', (req, res) => {
+  const challenges = getChallengesByChapterId(req.params.chapterId);
+  res.json(challenges);
+});
+
+// Get full challenge by ID
+router.get('/challenge/:challengeId', (req, res) => {
+  const challenge = getChallengeById(req.params.challengeId);
+  if (!challenge) return res.status(404).json({ error: "Challenge not found" });
+  res.json(challenge);
+});
+
+// Get all missions for a challenge
+router.get('/missions/:challengeId', (req, res) => {
+  const missions = getMissionsByChallengeId(req.params.challengeId);
+  res.json(missions);
+});
+
+// Get a mission by challengeId and missionId
+router.get('/mission/:challengeId/:missionId', (req, res) => {
+  const mission = getMissionById(req.params.challengeId, req.params.missionId);
   if (!mission) {
     return res.status(404).json({ error: "Mission not found" });
   }
   res.json({ mission });
 });
 
-// router.get('/mission-briefing', (req, res) => {
-//   // For now, just send the first quest; you can expand to multi-quest later.
-//   const { story, briefing, prompt } = quest1;
-//   res.json({ story, briefing, prompt });
-// });
-
-// POST /api/rhcsa-game
-router.post('/', (req, res) => {
+// Submit an answer to a mission
+router.post('/mission/attempt', (req, res) => {
   const { input, challengeId, missionId, tries, xp } = req.body;
 
   if (
@@ -38,31 +76,7 @@ router.post('/', (req, res) => {
 
   const result = processMissionAttempt({ input, challengeId, missionId, tries, xp });
 
-  // If the answer is correct, add mission extras
-  if (result.success) {
-    const mission = getMissionById(missionId);
-    result.missionExtras = {
-      output: mission.output,
-      aspects: mission.aspects,
-      options: mission.options,
-      outro: mission.outro
-    };
-  }
-
   res.json(result);
-});
-
-router.get('/intro', (req, res) => {
-  res.json({ intro }); 
-});
-
-// Serve options for challenge 1
-router.get('/options', (req, res) => {
-  // Defensive: only send if options exist and are array
-  const options = Array.isArray(quest1.options)
-    ? quest1.options
-    : [];
-  res.json({ options: quest1.options, story: quest1.story, briefing: quest1.briefing, prompt: quest1.prompt });
 });
 
 export default router;

@@ -23,6 +23,7 @@ With a deep breath, you accept the mission and begin your journey into the unkno
 
 Little do you know, the trials ahead will push you to your limits, testing not only your technical prowess but also your resolve.
 But fear not, for with each challenge overcome, you grow stronger, inching closer to your ultimate goal.
+
 `;
 
 export default intro;

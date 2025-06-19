@@ -1,25 +1,32 @@
 // services/rhcsaGameService.js
-
-import challenge_1 from '../data/chapters/chapter1/challenges/challenge_1.js';
-import partitions_filesystem from '../data/chapters/chapter1/challenges/missions/partitions_filesystem.js';
+import chapters from '../data/chapters/chapters.js';
 
 /**
- * Returns the mission object by its ID from challenge_1.
+ * Returns the mission object by its ID for the given challenge.
+ * @param {string} challengeId
  * @param {string} missionId
  * @returns {Object|null}
  */
-function getMissionById(missionId) {
-  return partitions_filesystem.find(m => m.id === missionId) || null;
+function getMissionById(challengeId, missionId) {
+  const challenge = getChallengeById(challengeId);
+  if (!challenge || !challenge.options) return null;
+  return challenge.options.find(m => m.id === missionId) || null;
 }
 
 /**
  * Validates the user input for the current mission.
- * @param {Object} opts - { input, missionId, tries, xp }
+ * @param {Object} opts - { input, challengeId, missionId, tries, xp }
  * @returns {Object} - result for frontend
  */
-function processMissionAttempt({ input, missionId, tries, xp }) {
-  const mission = getMissionById(missionId);
-
+function processMissionAttempt({ input, challengeId, missionId, tries, xp }) {
+  const mission = getMissionById(challengeId, missionId);
+  console.log('challengeId:', challengeId);
+  console.log('missionId:', missionId);
+  const challenge = getChallengeById(challengeId);
+  console.log('Found challenge:', !!challenge, challenge && challenge.id);
+  if (challenge) {
+    console.log('Mission IDs in challenge:', challenge.options.map(m => m.id));
+  }
   if (!mission) {
     return {
       output: 'Invalid mission.',
@@ -36,28 +43,28 @@ function processMissionAttempt({ input, missionId, tries, xp }) {
   let message = '';
   let hint = null;
   let complete = false;
-
-if (trimmedInput === mission.solution) {
-  success = true;
-  xpDelta = 10;
-  message = `✅ Correct! You earned 10 XP.`;
-  complete = true;
-  // NEW: include output, aspects, options in response
-  return {
-    output: message,
-    success,
-    xp: Math.max(0, xp + xpDelta),
-    xpDelta,
-    complete,
-    missionExtras: {
-      output: mission.output,
-      aspects: mission.aspects,
-      options: mission.options,
-      outro: mission.outro,
-    }
-  };
-}
- else {
+  console.log('User input:', trimmedInput);
+  console.log('Expected solution:', mission.solution);
+  if (trimmedInput === mission.solution) {
+    success = true;
+    xpDelta = 10;
+    message = `✅ Correct! You earned 10 XP.`;
+    complete = true;
+    // include output, aspects, options in response
+    return {
+      output: message,
+      success,
+      xp: Math.max(0, xp + xpDelta),
+      xpDelta,
+      complete,
+      missionExtras: {
+        output: mission.output,
+        aspects: mission.aspects,
+        options: mission.options,
+        outro: mission.outro
+      }
+    };
+  } else {
     success = false;
     xpDelta = xp > 0 ? -5 : 0;
     message = `❌ Incorrect.`;
@@ -84,20 +91,66 @@ if (trimmedInput === mission.solution) {
 }
 
 /**
- * Returns all required intro/briefing data for Challenge 1.
+ * Returns challenge briefing data by challenge ID.
+ * @param {string} challengeId
+ * @returns {Object|null}
  */
-function getFirstMissionBriefing() {
-  return {
-    questNumber: challenge_1.questNumber,
-    description: challenge_1.description,
-    story: challenge_1.story,
-    briefing: challenge_1.briefing,
-    prompt: challenge_1.prompt
-  };
+function getChallengeBriefing(challengeId) {
+  const challenge = getChallengeById(challengeId);
+  if (!challenge) return null;
+  const { id, title, story, briefing, prompt } = challenge;
+  return { id, title, story, briefing, prompt };
+}
+
+// Get all chapters (with meta info and challenge references)
+function getAllChapters() {
+  return chapters.map(({ id, name, story }) => ({
+    id,
+    name,
+    story
+  }));
+}
+
+// Get a full chapter object by chapterId (including its challenges)
+function getChapterById(chapterId) {
+  return chapters.find((c) => c.id === chapterId) || null;
+}
+
+// Get all challenges for a chapter
+function getChallengesByChapterId(chapterId) {
+  const chapter = chapters.find((c) => c.id === chapterId);
+  if (!chapter) return [];
+  return chapter.challenges.map(({ id, title, story, briefing, prompt }) => ({
+    id,
+    title,
+    story,
+    briefing,
+    prompt
+  }));
+}
+
+// Get full challenge object by challengeId (searches all chapters)
+function getChallengeById(challengeId) {
+  for (const chapter of chapters) {
+    const challenge = chapter.challenges.find((ch) => ch.id === challengeId);
+    if (challenge) return challenge;
+  }
+  return null;
+}
+
+// Get all missions for a challenge
+function getMissionsByChallengeId(challengeId) {
+  const challenge = getChallengeById(challengeId);
+  return challenge ? challenge.options : [];
 }
 
 export {
   processMissionAttempt,
   getMissionById,
-  getFirstMissionBriefing
+  getChallengeBriefing,
+  getAllChapters,
+  getChapterById,
+  getChallengesByChapterId,
+  getChallengeById,
+  getMissionsByChallengeId
 };

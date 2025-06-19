@@ -1,8 +1,8 @@
 import partitions_filesystem from './missions/partitions_filesystem.js';
 
-export default {
-  questNumber: 1,
-  description: "Configure Local Storage",
+const challenge_1 = {
+  id: "challenge_1",
+  title: "Create and Configure Filesystems",
   story: `Suddenly, a flashing icon appears on your display, accompanied by a blaring alert signal.
 You quickly access the message, recognizing the emblem of the Central Cybernetic Command.
 The message reads: 'Emergency protocol initiated. Urgent transmission incoming.'
@@ -21,30 +21,7 @@ Every command you execute, every diagnostic tool you deploy, is a step towards e
 The fate of countless lives rests on your shoulders, and failure is not an option.`,
   briefing: `Mission: Display all available block devices on a RHEL system.`,
   prompt: `Type your command:`,
-    options: [
-    {
-      id: 'df',
-      name: 'List Disk Space',
-      action: "You initiate the process to list disk space, a crucial step in understanding the resources available in this digital domain.",
-      success_message: "Disk space listed"
-    },
-    {
-      id: 'blkid',
-      name: "Get UUIDs",
-      action: "With determination, you delve into the depths of the system, seeking to retrieve the UUIDs of the disks.",
-      success_message: "UUIDs retrieved"
-    },
-    {
-      id: 'lsblk',
-      name: "List Disks and Partitions",
-      action: "You navigate the intricate web of disks and partitions, unraveling their secrets one by one.",
-      success_message: "Disks and partitions listed"
-    },
-    {
-      id: 'partprobe',
-      name: "Force Partition Check",
-      action: "With unwavering resolve, you command a forceful partition check, ensuring the stability of the digital landscape.",
-      success_message: "Partition check forced"
-    }
-  ]
+    options: partitions_filesystem,
 }
+
+export default challenge_1;

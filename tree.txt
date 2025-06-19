@@ -1,0 +1,83 @@
+.
+├── backend
+│   ├── blog.db
+│   ├── blog.db.bak
+│   ├── controllers
+│   │   ├── authController.js
+│   │   └── messageController.js
+│   ├── data
+│   │   ├── blog.db
+│   │   ├── chapters
+│   │   │   └── chapter1
+│   │   │       └── challenges
+│   │   │           ├── challenge_1.js
+│   │   │           ├── challenge_2.js
+│   │   │           └── missions
+│   │   │               ├── logical_volumes.js
+│   │   │               └── partitions_filesystem.js
+│   │   ├── chat.db
+│   │   └── intro.js
+│   ├── db.js
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── routes
+│   │   ├── authRoutes.js
+│   │   ├── chat.js
+│   │   ├── gpt.js
+│   │   ├── messageRoutes.js
+│   │   └── rhcsaGameRoute.js
+│   ├── server.js
+│   ├── services
+│   │   └── rhcsaGameService.js
+│   └── tests
+│       └── app.test.mjs
+├── frontend
+│   ├── deploy-frontend.sh
+│   ├── dist
+│   │   ├── assets
+│   │   │   ├── index-CnoWmrGE.css
+│   │   │   ├── index-DduyadLW.js
+│   │   │   └── index-DduyadLW.js.map
+│   │   └── index.html
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── postcss.config.js
+│   ├── public
+│   │   └── assets
+│   │       ├── screenshots
+│   │       │   ├── help.png
+│   │       │   ├── notes.png
+│   │       │   ├── volume.png
+│   │       │   └── weather.png
+│   │       ├── thumbnails
+│   │       │   └── thumbnail.png
+│   │       └── videos
+│   │           ├── final_assistant.mp4
+│   │           └── Video2Assistant.mp4
+│   ├── README.md
+│   ├── src
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── components
+│   │   │   ├── Footer.jsx
+│   │   │   ├── Header.jsx
+│   │   │   ├── HomePage.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── ManageMessagesModal.jsx
+│   │   │   ├── ProjectModal.jsx
+│   │   │   ├── projects.jsx
+│   │   │   ├── SignUpPage.jsx
+│   │   │   ├── SlowTypingAssistant.jsx
+│   │   │   ├── TerminalChat.jsx
+│   │   │   └── TerminalMessages.jsx
+│   │   ├── index.css
+│   │   └── main.jsx
+│   ├── tailwind.config.js
+│   └── vite.config.js
+├── gitPush.sh
+├── README.md
+└── tree.txt
+
+21 directories, 60 files
