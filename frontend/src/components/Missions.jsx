@@ -159,7 +159,7 @@ Debug info: ${error.message}`,
     } finally {
       setLoading(false);
     }
-  }, [loadedChallengeId, loading, setTypingAssistant]);
+  }, []); // FIXED: Empty dependencies to prevent recreation
 
   // Only load when challengeId changes and is valid
   useEffect(() => {
@@ -175,7 +175,7 @@ Debug info: ${error.message}`,
         abortControllerRef.current.abort();
       }
     };
-  }, [challengeId, loadChallengeData]);
+  }, [challengeId]); // FIXED: Only depend on challengeId
 
   const handleAssistantDone = useCallback(() => {
     setTypingAssistantState(false);
