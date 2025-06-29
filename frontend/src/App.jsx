@@ -11,8 +11,6 @@ function App() {
       <div className="flex flex-col min-h-screen">
         <Routes>
           <Route path="/" element={<HomePage />} />
-          {/* <Route path="/saymellon" element={<LoginPage />} /> */}
-          {/*<Route path="/register" element={<SignUpPage />} />*/}
           <Route path="/terminal-chat" element={<TerminalChat />} />
         </Routes>
         <Footer />

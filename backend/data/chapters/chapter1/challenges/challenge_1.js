@@ -3,7 +3,10 @@ import partitions_filesystem from './missions/partitions_filesystem.js';
 const challenge_1 = {
   id: "challenge_1",
   title: "Create and Configure Filesystems",
-  story: `Suddenly, a flashing icon appears on your display, accompanied by a blaring alert signal.
+  story: `
+  
+  
+  Suddenly, a flashing icon appears on your display, accompanied by a blaring alert signal.
 You quickly access the message, recognizing the emblem of the Central Cybernetic Command.
 The message reads: 'Emergency protocol initiated. Urgent transmission incoming.'
 With a sense of apprehension, you accept the transmission, bracing yourself for the impending mission.

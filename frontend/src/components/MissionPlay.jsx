@@ -1,11 +1,10 @@
-// components/MissionPlay.jsx
+// components/MissionPlay.jsx - FIXED VERSION
 
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-const HEADER_HEIGHT = 56;
 
 export default function MissionPlay({
   mission,
@@ -18,15 +17,11 @@ export default function MissionPlay({
   skipCurrentTypingRef,
   setTypingAssistant
 }) {
-  const [messages, setMessages] = useState([
-    { role: 'assistant', content: `**${mission.title || mission.name}**` },
-    { role: 'assistant', content: `**Action:** ${mission.action}` },
-    { role: 'assistant', content: mission.intro },
-    { role: 'assistant', content: 'Type your command:' }
-  ]);
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typingAssistant] = useState(false);
   const [awaitingContinue, setAwaitingContinue] = useState(false);
+  const [missionId, setMissionId] = useState(null); // Track mission ID separately
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const bottomRef = useRef(null);
@@ -36,17 +31,50 @@ export default function MissionPlay({
   }, [awaitingContinue]);
 
   useEffect(() => {
-    setMessages([
-      { role: 'assistant', content: `**${mission.title || mission.name}**` },
-      { role: 'assistant', content: `**Action:** ${mission.action}` },
-      { role: 'assistant', content: mission.intro },
-      { role: 'assistant', content: 'Type your command:' }
-    ]);
+    // Only initialize if this is a new mission
+    if (!mission?.id || mission.id === missionId) return;
+    
+    console.log('Initializing new mission:', mission.id);
+    setMissionId(mission.id);
+    
+    // Initialize messages with mission info
+    const initialMessages = [
+      { 
+        role: 'assistant', 
+        content: `🎯 **${mission.title || mission.name}**`,
+        timestamp: new Date().toISOString()
+      },
+      { 
+        role: 'assistant', 
+        content: `**Task:** ${mission.action || 'Complete the following exercise'}`,
+        timestamp: new Date().toISOString()
+      }
+    ];
+
+    // Add mission intro if available
+    if (mission.intro) {
+      initialMessages.push({
+        role: 'assistant', 
+        content: mission.intro,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Add instruction prompt
+    initialMessages.push({
+      role: 'assistant', 
+      content: '💻 **Ready for your command:**\n\nType your Linux command below and press Enter to execute it.',
+      timestamp: new Date().toISOString()
+    });
+
+    setMessages(initialMessages);
     setTypingAssistant(false);
     setAwaitingContinue(false);
     setInput('');
-    setTries(0);
-  }, [mission, setTries]);
+    if (setTries) {
+      setTries(0); // Ensure this is always called with a number
+    }
+  }, [mission?.id, missionId, setTries]); // Only run when mission ID actually changes
 
   const handleAssistantDone = () => {
     setTypingAssistant(false);
@@ -58,58 +86,119 @@ export default function MissionPlay({
   const handleSubmit = async () => {
     if (!input.trim()) return;
     const userInput = input.trim();
-    setInput('');
+    
+    console.log('Current input before clearing:', input);
+    setInput(''); // Clear input
+    console.log('Input cleared, submitting:', userInput);
+
+    // Add user input to messages immediately
+    setMessages(prev => [...prev, { 
+      role: 'user', 
+      content: userInput,
+      timestamp: new Date().toISOString()
+    }]);
 
     try {
+      console.log('Submitting mission attempt:', {
+        input: userInput,
+        challengeId,
+        missionId: mission.id,
+        tries: typeof tries === 'number' ? tries : 0,
+        xp: typeof xp === 'number' ? xp : 0
+      });
+
       const res = await axios.post(`${API_BASE_URL}/rhcsa-game/mission/attempt`, {
         input: userInput,
         challengeId,
         missionId: mission.id,
-        tries,
-        xp
+        tries: typeof tries === 'number' ? tries : 0, // Ensure it's always a number
+        xp: typeof xp === 'number' ? xp : 0 // Ensure it's always a number
       });
 
+      console.log('Mission attempt response:', res.data);
       const data = res.data;
 
-      setMessages(prev => {
-        const newMessages = [
-          ...prev,
-          { role: 'user', content: userInput }
-        ];
-        if (data.success) {
-          newMessages.push({
-            role: 'assistant',
-            content:
-              data.output +
-              (data.missionExtras
-                ? `\n\n---\n\n${data.missionExtras.output ? "**Example Output:**\n" + data.missionExtras.output : ""}
-                  ${data.missionExtras.aspects ? "\n**Command Aspects:**\n" + data.missionExtras.aspects.join('\n') : ""}
-                  ${data.missionExtras.options ? "\n**Options:**\n" + data.missionExtras.options.join('\n') : ""}
-                  ${data.missionExtras.outro ? "\n" + data.missionExtras.outro : ""}`
-                : "")
-          });
-          setAwaitingContinue(true);
-        } else {
-          newMessages.push({
-            role: 'assistant',
-            content:
-              data.output +
-              (data.hint ? `\n\nHint: ${data.hint}` : "")
-          });
-        }
-        return newMessages;
-      });
-
-      setXp(data.xp);
-
+      // Handle the response based on success/failure
       if (data.success) {
+        // Success response
+        let successMessage = data.output || '✅ Correct!';
+        
+        // Add mission extras if available
+        if (data.missionExtras) {
+          const extras = data.missionExtras;
+          let extraContent = '';
+          
+          if (extras.output) {
+            extraContent += `\n\n📋 **Example Output:**\n\`\`\`\n${extras.output}\n\`\`\``;
+          }
+          
+          if (extras.aspects && Array.isArray(extras.aspects)) {
+            extraContent += `\n\n🔍 **Command Breakdown:**\n${extras.aspects.map(aspect => `• ${aspect}`).join('\n')}`;
+          }
+          
+          if (extras.options && Array.isArray(extras.options)) {
+            extraContent += `\n\n⚙️ **Command Options:**\n${extras.options.map(option => `• ${option}`).join('\n')}`;
+          }
+          
+          if (extras.outro) {
+            extraContent += `\n\n${extras.outro}`;
+          }
+          
+          successMessage += extraContent;
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: successMessage,
+          timestamp: new Date().toISOString()
+        }]);
+
+        setAwaitingContinue(true);
         setTries(0);
       } else {
+        // Failure response
+        let failureMessage = data.output || '❌ Incorrect command.';
+        
+        if (data.hint) {
+          failureMessage += `\n\n💡 **Hint:** ${data.hint}`;
+        }
+        
+        failureMessage += '\n\nTry again! Remember to check the command syntax and options.';
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: failureMessage,
+          timestamp: new Date().toISOString()
+        }]);
+
         setTries(prev => prev + 1);
       }
 
+      // Update XP
+      if (typeof data.xp === 'number') {
+        setXp(data.xp);
+      }
+
     } catch (err) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'Game error.' }]);
+      console.error('Mission attempt error:', err);
+      
+      let errorMessage = '⚠️ **System Error**\n\nUnable to process your command. ';
+      
+      if (err.response?.status === 404) {
+        errorMessage += 'Mission not found. Please check the mission configuration.';
+      } else if (err.response?.status >= 500) {
+        errorMessage += 'Server error. Please try again in a moment.';
+      } else if (err.code === 'ECONNABORTED') {
+        errorMessage += 'Connection timeout. Please check your internet connection.';
+      } else {
+        errorMessage += 'Please try again or contact support if the issue persists.';
+      }
+
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: errorMessage,
+        timestamp: new Date().toISOString()
+      }]);
     }
   };
 
@@ -127,7 +216,20 @@ export default function MissionPlay({
   }, [awaitingContinue, onComplete]);
 
   return (
-    <>
+    <div className="mission-play-container w-full max-w-none">
+      {/* Enhanced Header */}
+      <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
+        <div className="text-center">
+          <div className="text-green-300 text-lg font-bold mb-2">
+            🎮 Mission In Progress 🎮
+          </div>
+          <div className="text-green-500 text-sm">
+            {mission.title || mission.name} • XP: {xp} • Attempts: {tries}
+          </div>
+        </div>
+      </div>
+
+      {/* Terminal Messages */}
       <TerminalMessages
         messages={messages}
         typingAssistant={typingAssistant}
@@ -135,43 +237,67 @@ export default function MissionPlay({
         onAssistantDone={handleAssistantDone}
         scrollContainerRef={scrollContainerRef}
         bottomRef={bottomRef}
-        headerOffset={HEADER_HEIGHT}
+        headerOffset={0}
         skipCurrentTypingRef={skipCurrentTypingRef}
+        showTimestamps={false}
+        className="mission-play-messages"
       />
-      {/* Input bar, only if not finished */}
+      
+      {/* Command Input */}
       {!awaitingContinue && (
-        <div className="border-t border-green-700 flex items-center bg-black px-4 py-2 mt-2">
-          <span className="mr-2 text-green-400">$</span>
+        <div className="border-t border-green-700 flex items-center bg-black px-4 py-3 mt-4 rounded-b-lg">
+          <span className="mr-3 text-green-400 font-bold text-lg">$</span>
           <input
             ref={inputRef}
             type="text"
             value={input}
-            onChange={e => setInput(e.target.value)}
+            onChange={e => {
+              console.log('Input changing to:', e.target.value);
+              setInput(e.target.value);
+            }}
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 handleSubmit();
                 e.preventDefault();
               }
             }}
-            className="bg-black text-green-400 outline-none flex-1"
+            className="bg-black text-green-400 outline-none flex-1 font-mono text-lg"
+            placeholder="Enter your Linux command here..."
             autoFocus
             disabled={typingAssistant}
           />
+          <div className="ml-4 text-green-600 text-sm">
+            Press Enter to execute
+          </div>
         </div>
       )}
-      {/* Show "Press Enter..." when done */}
+      
+      {/* Mission Complete - Continue Prompt */}
       {awaitingContinue && (
-        <div
-          className="w-full bg-black text-green-400 text-center py-3 border-t border-green-700 mt-2 cursor-pointer select-none font-bold"
-          onClick={onComplete}
-          onTouchStart={onComplete}
-          tabIndex={0}
-          style={{ fontSize: '1.2rem' }}
-        >
-          Tap or click anywhere to return to the mission menu
+        <div className="mt-6">
+          <div className="bg-green-900/20 border border-green-600 rounded-lg p-6">
+            <div className="text-center">
+              <div className="text-green-300 text-xl font-bold mb-2">
+                🎉 Mission Complete! 🎉
+              </div>
+              <div className="text-green-400 mb-4">
+                Great job! You've successfully completed this mission.
+              </div>
+              <button
+                onClick={onComplete}
+                className="px-6 py-3 bg-green-700 hover:bg-green-600 text-white font-bold rounded-lg transition-colors duration-200 transform hover:scale-105"
+              >
+                📋 Return to Mission Menu
+              </button>
+              <div className="text-green-600 text-sm mt-3">
+                Or press Enter anywhere to continue
+              </div>
+            </div>
+          </div>
         </div>
       )}
+
       <div ref={bottomRef} />
-    </>
+    </div>
   );
 }

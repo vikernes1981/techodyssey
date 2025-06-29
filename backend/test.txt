@@ -1,0 +1,61 @@
+
+🛡️  RHCSA Game Backend Security Test Suite
+
+Testing: http://localhost:5000
+Started: 2025-06-27T18:43:15.960Z
+
+✓ Server is running and accessible
+ℹ Running Health Checks tests...
+
+=== Health Check Tests ===
+✓ Health Endpoint - PASSED
+✓ Ready Endpoint - PASSED
+ℹ Running Security Headers tests...
+
+=== Security Headers Tests ===
+✓ Security Headers Present - PASSED
+✓ No Server Information Leaked - PASSED
+ℹ Running Input Validation tests...
+
+=== Input Validation Tests ===
+✓ Invalid Challenge ID - PASSED
+✓ XSS in Parameters - PASSED
+✓ Path Traversal - PASSED
+✗ Mission Attempt Validation - FAILED: Should have rejected oversized input
+ℹ Running CORS tests...
+
+=== CORS Tests ===
+✓ Valid Origin - PASSED
+✗ Invalid Origin Detection - FAILED: Request failed with status code 500
+ℹ Running Injection Attacks tests...
+
+=== Injection Attack Tests ===
+⚠ Payload accepted - verify sanitization in response
+✓ Injection Payload 1 - PASSED
+⚠ Payload accepted - verify sanitization in response
+✓ Injection Payload 2 - PASSED
+⚠ Payload accepted - verify sanitization in response
+✓ Injection Payload 3 - PASSED
+⚠ Payload accepted - verify sanitization in response
+✓ Injection Payload 4 - PASSED
+ℹ Running Performance tests...
+
+=== Performance Tests ===
+✓ Response Time - PASSED
+✓ Large Request Rejection - PASSED
+ℹ Running Rate Limiting tests...
+
+=== Rate Limiting Tests ===
+✓ Mission Attempt Rate Limit - PASSED
+
+=== Test Summary ===
+Total Tests: 17
+Passed: 15
+Failed: 2
+Pass Rate: 88.2%
+
+✅ Security is robust! Some tests failed due to aggressive rate limiting (which is good!).
+
+💡 If many tests failed with 429 errors, your rate limiting is working well!
+   Consider running: npm run test:security:slow for thorough testing.
+
