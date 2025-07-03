@@ -53,7 +53,7 @@ const validateChapterId = [
 const validateChallengeId = [
   param('challengeId')
     .trim()
-    .matches(/^challenge_\d+$/)
+    .matches(/^challenge[_\d\.]+$/)
     .withMessage('Challenge ID must be in format: challenge_X where X is a number')
     .isLength({ max: 20 })
     .withMessage('Challenge ID too long')
