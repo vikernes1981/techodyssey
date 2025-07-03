@@ -1,4 +1,3 @@
-// backend/data/intro.js
 
 const intro = `
 

@@ -1,5 +1,3 @@
-// components/MissionPlay.jsx - FIXED VERSION
-
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
@@ -21,23 +19,21 @@ export default function MissionPlay({
   const [input, setInput] = useState('');
   const [typingAssistant] = useState(false);
   const [awaitingContinue, setAwaitingContinue] = useState(false);
-  const [missionId, setMissionId] = useState(null); // Track mission ID separately
+  const [missionId, setMissionId] = useState(null);
   const inputRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const bottomRef = useRef(null);
 
+  // Focus input when awaitingContinue changes
   useEffect(() => {
     inputRef.current?.focus();
   }, [awaitingContinue]);
 
+  // Initialize mission state and messages when mission changes
   useEffect(() => {
-    // Only initialize if this is a new mission
     if (!mission?.id || mission.id === missionId) return;
-    
-    console.log('Initializing new mission:', mission.id);
     setMissionId(mission.id);
-    
-    // Initialize messages with mission info
+
     const initialMessages = [
       { 
         role: 'assistant', 
@@ -51,7 +47,6 @@ export default function MissionPlay({
       }
     ];
 
-    // Add mission intro if available
     if (mission.intro) {
       initialMessages.push({
         role: 'assistant', 
@@ -60,7 +55,6 @@ export default function MissionPlay({
       });
     }
 
-    // Add instruction prompt
     initialMessages.push({
       role: 'assistant', 
       content: '💻 **Ready for your command:**\n\nType your Linux command below and press Enter to execute it.',
@@ -71,11 +65,10 @@ export default function MissionPlay({
     setTypingAssistant(false);
     setAwaitingContinue(false);
     setInput('');
-    if (setTries) {
-      setTries(0); // Ensure this is always called with a number
-    }
-  }, [mission?.id, missionId, setTries]); // Only run when mission ID actually changes
+    if (setTries) setTries(0);
+  }, [mission?.id, missionId, setTries]);
 
+  // Callback when assistant finishes typing
   const handleAssistantDone = () => {
     setTypingAssistant(false);
     setTimeout(() => {
@@ -83,15 +76,13 @@ export default function MissionPlay({
     }, 0);
   };
 
+  // Handle user command submission
   const handleSubmit = async () => {
     if (!input.trim()) return;
     const userInput = input.trim();
-    
-    console.log('Current input before clearing:', input);
-    setInput(''); // Clear input
-    console.log('Input cleared, submitting:', userInput);
+    setInput('');
 
-    // Add user input to messages immediately
+    // Add user input to messages
     setMessages(prev => [...prev, { 
       role: 'user', 
       content: userInput,
@@ -99,7 +90,7 @@ export default function MissionPlay({
     }]);
 
     try {
-      console.log('Submitting mission attempt:', {
+      const res = await axios.post(`${API_BASE_URL}/rhcsa-game/mission/attempt`, {
         input: userInput,
         challengeId,
         missionId: mission.id,
@@ -107,43 +98,26 @@ export default function MissionPlay({
         xp: typeof xp === 'number' ? xp : 0
       });
 
-      const res = await axios.post(`${API_BASE_URL}/rhcsa-game/mission/attempt`, {
-        input: userInput,
-        challengeId,
-        missionId: mission.id,
-        tries: typeof tries === 'number' ? tries : 0, // Ensure it's always a number
-        xp: typeof xp === 'number' ? xp : 0 // Ensure it's always a number
-      });
-
-      console.log('Mission attempt response:', res.data);
       const data = res.data;
 
-      // Handle the response based on success/failure
       if (data.success) {
-        // Success response
+        // Build success message with extras if available
         let successMessage = data.output || '✅ Correct!';
-        
-        // Add mission extras if available
         if (data.missionExtras) {
           const extras = data.missionExtras;
           let extraContent = '';
-          
           if (extras.output) {
             extraContent += `\n\n📋 **Example Output:**\n\`\`\`\n${extras.output}\n\`\`\``;
           }
-          
           if (extras.aspects && Array.isArray(extras.aspects)) {
             extraContent += `\n\n🔍 **Command Breakdown:**\n${extras.aspects.map(aspect => `• ${aspect}`).join('\n')}`;
           }
-          
           if (extras.options && Array.isArray(extras.options)) {
             extraContent += `\n\n⚙️ **Command Options:**\n${extras.options.map(option => `• ${option}`).join('\n')}`;
           }
-          
           if (extras.outro) {
             extraContent += `\n\n${extras.outro}`;
           }
-          
           successMessage += extraContent;
         }
 
@@ -152,17 +126,14 @@ export default function MissionPlay({
           content: successMessage,
           timestamp: new Date().toISOString()
         }]);
-
         setAwaitingContinue(true);
         setTries(0);
       } else {
-        // Failure response
+        // Build failure message with hint if available
         let failureMessage = data.output || '❌ Incorrect command.';
-        
         if (data.hint) {
           failureMessage += `\n\n💡 **Hint:** ${data.hint}`;
         }
-        
         failureMessage += '\n\nTry again! Remember to check the command syntax and options.';
 
         setMessages(prev => [...prev, {
@@ -170,20 +141,17 @@ export default function MissionPlay({
           content: failureMessage,
           timestamp: new Date().toISOString()
         }]);
-
         setTries(prev => prev + 1);
       }
 
-      // Update XP
+      // Update XP if provided
       if (typeof data.xp === 'number') {
         setXp(data.xp);
       }
 
     } catch (err) {
-      console.error('Mission attempt error:', err);
-      
+      // Handle API/network errors
       let errorMessage = '⚠️ **System Error**\n\nUnable to process your command. ';
-      
       if (err.response?.status === 404) {
         errorMessage += 'Mission not found. Please check the mission configuration.';
       } else if (err.response?.status >= 500) {
@@ -193,7 +161,6 @@ export default function MissionPlay({
       } else {
         errorMessage += 'Please try again or contact support if the issue persists.';
       }
-
       setMessages(prev => [...prev, { 
         role: 'assistant', 
         content: errorMessage,
@@ -202,7 +169,7 @@ export default function MissionPlay({
     }
   };
 
-  // Handle Enter to continue after correct answer
+  // Listen for Enter key to continue after mission completion
   useEffect(() => {
     if (!awaitingContinue) return;
     const handler = (e) => {
@@ -217,7 +184,7 @@ export default function MissionPlay({
 
   return (
     <div className="mission-play-container w-full max-w-none">
-      {/* Enhanced Header */}
+      {/* Mission header with title, XP, and attempts */}
       <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
         <div className="text-center">
           <div className="text-green-300 text-lg font-bold mb-2">
@@ -229,7 +196,7 @@ export default function MissionPlay({
         </div>
       </div>
 
-      {/* Terminal Messages */}
+      {/* Terminal-style message display */}
       <TerminalMessages
         messages={messages}
         typingAssistant={typingAssistant}
@@ -243,7 +210,7 @@ export default function MissionPlay({
         className="mission-play-messages"
       />
       
-      {/* Command Input */}
+      {/* Command input field, shown only if mission not complete */}
       {!awaitingContinue && (
         <div className="border-t border-green-700 flex items-center bg-black px-4 py-3 mt-4 rounded-b-lg">
           <span className="mr-3 text-green-400 font-bold text-lg">$</span>
@@ -251,10 +218,7 @@ export default function MissionPlay({
             ref={inputRef}
             type="text"
             value={input}
-            onChange={e => {
-              console.log('Input changing to:', e.target.value);
-              setInput(e.target.value);
-            }}
+            onChange={e => setInput(e.target.value)}
             onKeyDown={e => {
               if (e.key === 'Enter') {
                 handleSubmit();
@@ -272,7 +236,7 @@ export default function MissionPlay({
         </div>
       )}
       
-      {/* Mission Complete - Continue Prompt */}
+      {/* Mission complete prompt with continue button */}
       {awaitingContinue && (
         <div className="mt-6">
           <div className="bg-green-900/20 border border-green-600 rounded-lg p-6">

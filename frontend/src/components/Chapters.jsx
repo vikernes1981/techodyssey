@@ -1,15 +1,9 @@
-// components/Chapters.jsx - FIXED VERSION
-
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-/**
- * Enterprise-grade chapter selection component
- * Features: Enhanced UI, loading states, error handling, accessibility
- */
 export default function Chapters({ 
   onSelectChapter, 
   skipCurrentTypingRef, 
@@ -31,7 +25,7 @@ export default function Chapters({
   const scrollContainerRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // Enhanced chapter loading with comprehensive error handling
+  // Load chapters from API or fallback to offline content on error
   useEffect(() => {
     const loadChapters = async () => {
       try {
@@ -41,25 +35,19 @@ export default function Chapters({
           timeout: 8000
         });
 
-        // FIX 1: Properly access nested response data
-        console.log('Raw response:', response.data);
-        
+        // Normalize chapters data from API response
         let chaptersData;
         if (response.data.chapters) {
-          // Backend returns { chapters: [...], count: X, timestamp: ... }
           chaptersData = response.data.chapters;
         } else if (Array.isArray(response.data)) {
-          // Backend returns array directly
           chaptersData = response.data;
         } else {
-          // Backend returns single object - wrap in array
           chaptersData = [response.data];
         }
 
-        console.log('Processed chapters:', chaptersData);
         setChapters(chaptersData);
 
-        // Enhanced welcome message with chapter overview
+        // Build welcome message with chapter overview or fallback message
         let welcomeMessage;
         if (chaptersData.length > 0) {
           const chapterList = chaptersData.map((ch, idx) => 
@@ -106,8 +94,7 @@ Your Red Hat certification journey awaits! 🔄`;
         }
 
       } catch (error) {
-        console.error('Failed to load chapters:', error);
-        
+        // Handle API errors and provide offline fallback
         let errorMessage = 'Failed to load training modules.';
         if (error.code === 'ECONNABORTED') {
           errorMessage = 'Connection timeout. Please check your internet connection.';
@@ -121,7 +108,7 @@ Your Red Hat certification journey awaits! 🔄`;
           error: errorMessage 
         }));
 
-        // Fallback chapters for offline experience
+        // Fallback chapter for offline mode
         const fallbackChapters = [
           {
             id: "chapter_1",
@@ -160,7 +147,7 @@ You can still begin training with the available offline content.`;
     loadChapters();
   }, [setTypingAssistant]);
 
-  // Handle typing completion
+  // Mark all messages as revealed and stop typing assistant when done
   const handleAssistantDone = useCallback(() => {
     if (setTypingAssistant) {
       setTypingAssistant(false);
@@ -168,11 +155,9 @@ You can still begin training with the available offline content.`;
     setChapterState(prev => ({ ...prev, allMessagesRevealed: true }));
   }, [setTypingAssistant]);
 
-  // Enhanced chapter selection with loading state
+  // Handle chapter selection and notify parent
   const handleChapterSelect = useCallback(async (chapterId) => {
     setChapterState(prev => ({ ...prev, selectedChapter: chapterId }));
-    
-    // Small delay for visual feedback
     setTimeout(() => {
       if (onSelectChapter) {
         onSelectChapter(chapterId);
@@ -180,7 +165,7 @@ You can still begin training with the available offline content.`;
     }, 150);
   }, [onSelectChapter]);
 
-  // Keyboard navigation for chapters
+  // Keyboard navigation for chapter selection
   useEffect(() => {
     if (!chapterState.allMessagesRevealed) return;
 
@@ -191,7 +176,7 @@ You can still begin training with the available offline content.`;
       
       switch (e.key) {
         case 'ArrowDown':
-        case 'j': // Vim-style navigation
+        case 'j':
           e.preventDefault();
           const nextIndex = (currentIndex + 1) % chapters.length;
           setChapterState(prev => ({ 
@@ -199,9 +184,8 @@ You can still begin training with the available offline content.`;
             hoveredChapter: chapters[nextIndex].id 
           }));
           break;
-          
         case 'ArrowUp':
-        case 'k': // Vim-style navigation
+        case 'k':
           e.preventDefault();
           const prevIndex = currentIndex <= 0 ? chapters.length - 1 : currentIndex - 1;
           setChapterState(prev => ({ 
@@ -209,7 +193,6 @@ You can still begin training with the available offline content.`;
             hoveredChapter: chapters[prevIndex].id 
           }));
           break;
-          
         case 'Enter':
           e.preventDefault();
           if (chapterState.hoveredChapter) {
@@ -218,7 +201,6 @@ You can still begin training with the available offline content.`;
             handleChapterSelect(chapters[0].id);
           }
           break;
-          
         case '1':
         case '2':
         case '3':
@@ -237,19 +219,16 @@ You can still begin training with the available offline content.`;
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [chapterState.allMessagesRevealed, chapterState.hoveredChapter, chapters, handleChapterSelect]);
 
-  // FIX 2: Enhanced chapter statistics with proper null checks
+  // Compute chapter statistics and metadata for display
   const chapterStats = useMemo(() => {
     if (!Array.isArray(chapters)) return [];
-    
     return chapters.map(chapter => {
-      // Safety checks for all properties
       const name = chapter?.name || 'Unnamed Chapter';
       const story = chapter?.story || 'No description available';
-      
       return {
         ...chapter,
-        name, // Ensure name is always defined
-        story, // Ensure story is always defined
+        name,
+        story,
         difficulty: name.toLowerCase().includes('storage') ? 'Beginner' :
                    name.toLowerCase().includes('network') ? 'Intermediate' :
                    name.toLowerCase().includes('security') ? 'Advanced' : 'Beginner',
@@ -261,7 +240,7 @@ You can still begin training with the available offline content.`;
 
   return (
     <div className="chapters-container w-full max-w-none">
-      {/* Enhanced Header */}
+      {/* Header section */}
       <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
         <div className="text-center">
           <div className="text-green-300 text-lg font-bold mb-2">
@@ -273,7 +252,7 @@ You can still begin training with the available offline content.`;
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading indicator */}
       {chapterState.loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -290,7 +269,7 @@ You can still begin training with the available offline content.`;
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error message and retry option */}
       {chapterState.error && (
         <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 my-6">
           <div className="flex items-start space-x-3">
@@ -313,9 +292,10 @@ You can still begin training with the available offline content.`;
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main content after loading */}
       {!chapterState.loading && (
         <>
+          {/* Terminal-style assistant messages */}
           <TerminalMessages
             messages={messages}
             typingAssistant={typingAssistant}
@@ -331,10 +311,10 @@ You can still begin training with the available offline content.`;
             className="chapters-messages"
           />
 
-          {/* Enhanced Chapter Selection */}
+          {/* Chapter selection UI */}
           {chapterState.allMessagesRevealed && chapterStats.length > 0 && (
             <div className="mt-8">
-              {/* Selection Instructions */}
+              {/* Instructions for selecting chapters */}
               <div className="mb-6 p-4 bg-green-900/20 border border-green-600 rounded-lg">
                 <div className="text-green-300 font-bold mb-2">📋 Chapter Selection</div>
                 <div className="text-green-400 text-sm space-y-1">
@@ -344,7 +324,7 @@ You can still begin training with the available offline content.`;
                 </div>
               </div>
 
-              {/* Chapter Cards */}
+              {/* List of chapter cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {chapterStats.map((chapter, index) => {
                   const isSelected = chapterState.selectedChapter === chapter.id;
@@ -372,19 +352,19 @@ You can still begin training with the available offline content.`;
                         hoveredChapter: null 
                       }))}
                     >
-                      {/* Chapter Number */}
+                      {/* Chapter number badge */}
                       <div className="absolute top-3 left-3 w-8 h-8 bg-green-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {index + 1}
                       </div>
 
-                      {/* Loading Indicator for Selected */}
+                      {/* Loading spinner for selected chapter */}
                       {isSelected && (
                         <div className="absolute top-3 right-3">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-400"></div>
                         </div>
                       )}
 
-                      {/* Chapter Content */}
+                      {/* Chapter details */}
                       <div className="ml-12">
                         <h3 className="text-green-300 font-bold text-lg mb-2">
                           {chapter.name}
@@ -394,7 +374,7 @@ You can still begin training with the available offline content.`;
                           {chapter.story}
                         </p>
 
-                        {/* Chapter Metadata */}
+                        {/* Chapter metadata: difficulty and estimated time */}
                         <div className="grid grid-cols-2 gap-4 text-xs">
                           <div>
                             <span className="text-green-500">Difficulty:</span>
@@ -414,7 +394,7 @@ You can still begin training with the available offline content.`;
                           </div>
                         </div>
 
-                        {/* Progress Bar Placeholder */}
+                        {/* Progress bar visual feedback */}
                         <div className="mt-4 bg-gray-800 rounded-full h-2">
                           <div 
                             className="bg-green-600 h-2 rounded-full transition-all duration-300" 
@@ -423,14 +403,14 @@ You can still begin training with the available offline content.`;
                         </div>
                       </div>
 
-                      {/* Hover Effect */}
+                      {/* Subtle hover effect overlay */}
                       <div className="absolute inset-0 rounded-lg bg-green-400 opacity-0 group-hover:opacity-5 transition-opacity"></div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Quick Start Option */}
+              {/* Quick start button for first chapter */}
               <div className="mt-8 text-center">
                 <button
                   onClick={() => chapters.length > 0 && handleChapterSelect(chapters[0].id)}
@@ -440,7 +420,7 @@ You can still begin training with the available offline content.`;
                 </button>
               </div>
 
-              {/* Keyboard Shortcuts Help */}
+              {/* Keyboard shortcuts help */}
               <div className="mt-6 text-center text-green-600 text-xs opacity-60">
                 Keyboard shortcuts: <kbd className="bg-gray-800 px-1 rounded">1-{chapters.length}</kbd> for direct selection | 
                 <kbd className="bg-gray-800 px-1 rounded mx-1">↑↓</kbd> navigate | 
@@ -449,7 +429,7 @@ You can still begin training with the available offline content.`;
             </div>
           )}
 
-          {/* Empty State */}
+          {/* Empty state if no chapters available */}
           {chapterState.allMessagesRevealed && chapters.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">📚</div>

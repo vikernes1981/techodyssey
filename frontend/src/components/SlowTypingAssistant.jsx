@@ -1,39 +1,44 @@
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle, useCallback } from "react";
 
 /**
- * Enterprise-grade slow-typing component for immersive terminal experience
- * Features: Variable typing speed, enhanced cursor, performance optimization, error handling
+ * SlowTypingAssistant
+ * 
+ * Displays text as if it's being typed out character by character, with optional skipping,
+ * sound, and scroll-to-bottom support. Exposes imperative methods via ref.
  */
 const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
   {
-    text,
-    onDone,
-    scrollContainerRef,
-    bottomRef,
-    headerOffset = 0,
-    typingSpeed = 'normal', // 'slow', 'normal', 'fast', 'instant'
-    enableSound = false,
+    text, // The text to display
+    onDone, // Callback when typing is complete
+    scrollContainerRef, // Ref to the scrollable container (for auto-scroll)
+    bottomRef, // Ref to the element to scroll to
+    headerOffset = 0, // Offset for scrolling (e.g., sticky header)
+    typingSpeed = 'normal', // Typing speed: 'instant', 'fast', 'normal', 'slow'
+    enableSound = false, // Play sound on skip
     className = "",
-    cursorStyle = 'block' // 'block', 'line', 'underscore'
+    cursorStyle = 'block' // Cursor style: 'block', 'line', 'underscore'
   },
   ref
 ) {
+  // State for displayed text, typing completion, cursor visibility, and current char index
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
   const [showCursor, setShowCursor] = useState(true);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
-  
-  // Refs for cleanup and control
+
+  // Refs for timers, skip state, activity, and scroll throttling
   const timerRef = useRef(null);
   const skipRef = useRef(false);
   const cursorTimerRef = useRef(null);
   const isActiveRef = useRef(true);
   const lastScrollTimeRef = useRef(0);
 
-  // Performance: Throttled scroll function
+  /**
+   * Scrolls the container to the bottom element, throttled to ~60fps.
+   */
   const throttledScroll = useCallback(() => {
     const now = Date.now();
-    if (now - lastScrollTimeRef.current < 16) return; // ~60fps throttling
+    if (now - lastScrollTimeRef.current < 16) return;
     lastScrollTimeRef.current = now;
 
     if (
@@ -44,8 +49,7 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
       const scrollElem = scrollContainerRef.current;
       const bottomElem = bottomRef.current;
       const target = bottomElem.offsetTop - (headerOffset || 0);
-      
-      // Use requestAnimationFrame for smooth scrolling
+
       requestAnimationFrame(() => {
         if (scrollElem && isActiveRef.current) {
           scrollElem.scrollTo({ top: target, behavior: "auto" });
@@ -54,12 +58,14 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     }
   }, [scrollContainerRef, bottomRef, headerOffset]);
 
-  // Enhanced cursor blinking with better timing
+  /**
+   * Handles blinking cursor effect while typing.
+   */
   useEffect(() => {
     if (!done) {
       cursorTimerRef.current = setInterval(() => {
         setShowCursor(prev => !prev);
-      }, 530); // Authentic terminal cursor timing
+      }, 530);
     } else {
       setShowCursor(false);
     }
@@ -71,7 +77,9 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     };
   }, [done]);
 
-  // Typing speed configuration
+  /**
+   * Returns the delay (ms) between each character, based on typingSpeed.
+   */
   const getTypingDelay = useCallback(() => {
     const speeds = {
       instant: 0,
@@ -79,13 +87,13 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
       normal: 18,
       slow: 35
     };
-    
-    // Add slight randomness for human-like feel
     const baseDelay = speeds[typingSpeed] || speeds.normal;
     return baseDelay + Math.random() * 8;
   }, [typingSpeed]);
 
-  // Imperative skip API for parent components
+  /**
+   * Expose imperative methods to parent via ref.
+   */
   useImperativeHandle(ref, () => ({
     skip: handleSkip,
     isComplete: () => done,
@@ -98,7 +106,10 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     }
   }), [done, displayed]);
 
-  // Main typing effect with enhanced performance
+  /**
+   * Main typing effect: types out the text character by character.
+   * Handles skip, instant mode, and cleanup.
+   */
   useEffect(() => {
     if (!text) {
       setDone(true);
@@ -106,7 +117,6 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
       return;
     }
 
-    // Reset state
     setDisplayed("");
     setDone(false);
     setCurrentCharIndex(0);
@@ -130,79 +140,75 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
         const newDisplayed = text.slice(0, charIndex + 1);
         setDisplayed(newDisplayed);
         setCurrentCharIndex(charIndex);
-        
-        // Throttled scroll update
+
         throttledScroll();
-        
+
         charIndex++;
         timerRef.current = setTimeout(typeCharacter, getTypingDelay());
       } else {
-        // Typing complete
         setDone(true);
         if (onDone) onDone();
       }
     };
 
-    // Start typing
     typeCharacter();
 
-    // Cleanup function
     return () => {
       isActiveRef.current = false;
       clearTimeout(timerRef.current);
     };
   }, [text, typingSpeed, throttledScroll, getTypingDelay, onDone]);
 
-  // Enhanced skip function with better UX
+  /**
+   * Handles skipping the typing animation, showing all text at once.
+   * Optionally plays a sound and calls onDone.
+   */
   const handleSkip = useCallback((event) => {
     if (done || skipRef.current) return;
 
     skipRef.current = true;
     clearTimeout(timerRef.current);
-    
-    // Instantly show full text
+
     setDisplayed(text);
     setCurrentCharIndex(text.length);
     setDone(true);
-    
-    // Immediate scroll to final position
+
     throttledScroll();
-    
-    // Sound effect for skip (if enabled)
+
+    // Play a short sound if enabled
     if (enableSound && typeof window !== 'undefined' && window.AudioContext) {
       try {
-        // Simple beep sound
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
         gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-        
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.1);
-      } catch (error) {
-        // Silently fail if audio not supported
-      }
+      } catch (error) {}
     }
-    
+
     if (onDone) onDone();
-    
+
+    // Prevent default browser actions for skip keys
     if (event) {
       event.preventDefault();
       event.stopPropagation();
     }
   }, [done, text, throttledScroll, enableSound, onDone]);
 
-  // Enhanced keyboard handling
+  /**
+   * Adds keyboard event listener for skipping typing with certain keys.
+   */
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (!done && !skipRef.current && isActiveRef.current) {
-        // Allow common skip keys
         if (
           event.key === ' ' ||
           event.key === 'Enter' ||
@@ -219,7 +225,9 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [done, handleSkip]);
 
-  // Cleanup on unmount
+  /**
+   * Cleanup on unmount: clear timers and mark as inactive.
+   */
   useEffect(() => {
     return () => {
       isActiveRef.current = false;
@@ -228,7 +236,9 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     };
   }, []);
 
-  // Cursor rendering based on style
+  /**
+   * Renders the blinking cursor according to the chosen style.
+   */
   const renderCursor = () => {
     if (done || !showCursor) return null;
 
@@ -238,7 +248,7 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
       underscore: "border-b-2 border-green-400 ml-0.5 animate-pulse"
     };
 
-    const cursorChar = cursorStyle === 'block' ? '▋' : 
+    const cursorChar = cursorStyle === 'block' ? '▋' :
                      cursorStyle === 'line' ? '' : '_';
 
     return (
@@ -248,7 +258,7 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     );
   };
 
-  // Error boundary fallback
+  // Show error if no text is provided
   if (!text) {
     return (
       <div className="text-red-400 text-sm">
@@ -257,6 +267,7 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
     );
   }
 
+  // Main render: displayed text, cursor, skip hint, and progress bar for long text
   return (
     <div
       className={`
@@ -279,29 +290,24 @@ const SlowTypingAssistant = forwardRef(function SlowTypingAssistant(
       aria-live="polite"
       aria-label={done ? "Text complete" : "Text typing in progress"}
     >
-      {/* Main text content */}
       <span className="text-green-400">
         {displayed}
       </span>
-      
-      {/* Cursor */}
       {renderCursor()}
-      
-      {/* Skip hint (subtle) */}
+      {/* Show skip hint if text is long and not done */}
       {!done && displayed.length > 20 && (
         <div className="absolute -bottom-6 right-0 text-green-600 text-xs opacity-50 animate-pulse">
           Press any key to skip
         </div>
       )}
-      
-      {/* Progress indicator for long text */}
+      {/* Show progress bar for very long text */}
       {!done && text.length > 200 && (
         <div className="absolute -bottom-8 left-0 w-full">
           <div className="w-full bg-gray-800 rounded-full h-1">
-            <div 
+            <div
               className="bg-green-600 h-1 rounded-full transition-all duration-100"
-              style={{ 
-                width: `${(displayed.length / text.length) * 100}%` 
+              style={{
+                width: `${(displayed.length / text.length) * 100}%`
               }}
             />
           </div>

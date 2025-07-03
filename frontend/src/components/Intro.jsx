@@ -1,15 +1,9 @@
-// components/Intro.jsx
-
 import { useEffect, useRef, useState, useCallback } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-/**
- * Enterprise-grade game introduction component
- * Features: Enhanced storytelling, professional animations, error handling
- */
 export default function Intro({ 
   onContinue, 
   skipCurrentTypingRef, 
@@ -28,22 +22,19 @@ export default function Intro({
   const [typingAssistant] = useState(true);
   const [currentTime] = useState(new Date());
   
-  // Refs for enhanced control
   const inputRef = useRef(null);
   const bottomRef = useRef(null);
   const scrollContainerRef = useRef(null);
   const continueTimeoutRef = useRef(null);
 
-  // Enhanced intro loading with better error handling
+  // Load intro story from API or fallback to offline content
   useEffect(() => {
     const loadIntroStory = async () => {
       try {
         setIntroState(prev => ({ ...prev, loading: true, error: null }));
-        
         const response = await axios.get(`${API_BASE_URL}/rhcsa-game/intro`, {
-          timeout: 10000 // 10 second timeout
+          timeout: 10000
         });
-        
         const introStory = Array.isArray(response.data.intro) 
           ? response.data.intro[0] 
           : response.data.intro;
@@ -52,7 +43,6 @@ export default function Intro({
           throw new Error('No intro story received from server');
         }
 
-        // Enhanced intro message with metadata
         const welcomeMessage = {
           role: 'assistant',
           content: introStory,
@@ -62,14 +52,9 @@ export default function Intro({
 
         setMessages([welcomeMessage]);
         setIntroState(prev => ({ ...prev, loading: false }));
-        
-        if (setTypingAssistant) {
-          setTypingAssistant(true);
-        }
-        
+        if (setTypingAssistant) setTypingAssistant(true);
       } catch (error) {
-        console.error('Failed to load intro:', error);
-        
+        // Handle API errors and provide fallback content
         let errorMessage = 'Failed to load introduction.';
         if (error.code === 'ECONNABORTED') {
           errorMessage = 'Connection timeout. Please check your internet connection.';
@@ -85,7 +70,6 @@ export default function Intro({
           error: errorMessage 
         }));
 
-        // Fallback intro story for offline experience
         const fallbackStory = `Welcome to the Red Hat Odyssey!
 
 In the year 2150, humanity made a quantum leap into the digital age, transcending the boundaries of the physical world.
@@ -108,34 +92,28 @@ Are you ready to begin your journey?`;
           timestamp: new Date().toISOString(),
           id: 'fallback-intro'
         }]);
-
-        if (setTypingAssistant) {
-          setTypingAssistant(true);
-        }
+        if (setTypingAssistant) setTypingAssistant(true);
       }
     };
 
     loadIntroStory();
   }, [setTypingAssistant]);
 
-  // Enhanced focus management
+  // Focus hidden input when all messages are revealed for keyboard navigation
   useEffect(() => {
     if (introState.allMessagesRevealed && inputRef.current) {
-      // Delay focus to ensure smooth UX
       const focusTimeout = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
-      
       return () => clearTimeout(focusTimeout);
     }
   }, [introState.allMessagesRevealed]);
 
-  // Enhanced keyboard handling with multiple continue options
+  // Keyboard shortcuts for continuing or restarting the intro
   useEffect(() => {
     if (!introState.allMessagesRevealed) return;
 
     const handleKeyDown = (e) => {
-      // Multiple ways to continue for better UX
       if (
         e.key === 'Enter' || 
         e.key === ' ' || 
@@ -145,8 +123,6 @@ Are you ready to begin your journey?`;
         e.preventDefault();
         handleContinue();
       }
-      
-      // Escape to restart intro (advanced feature)
       if (e.key === 'Escape') {
         e.preventDefault();
         window.location.reload();
@@ -157,41 +133,29 @@ Are you ready to begin your journey?`;
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [introState.allMessagesRevealed]);
 
-  // Enhanced continue handler with smooth transitions
+  // Continue to the next section after intro
   const handleContinue = useCallback(() => {
     if (!introState.allMessagesRevealed) return;
-    
-    // Add slight delay for better UX
     setIntroState(prev => ({ ...prev, showContinue: false }));
-    
     continueTimeoutRef.current = setTimeout(() => {
-      if (onContinue) {
-        onContinue();
-      }
+      if (onContinue) onContinue();
     }, 150);
   }, [introState.allMessagesRevealed, onContinue]);
 
-  // Handle typing completion with enhanced UX
+  // Mark messages as revealed and show continue button when typing is done
   const handleAssistantDone = useCallback(() => {
-    if (setTypingAssistant) {
-      setTypingAssistant(false);
-    }
-    
+    if (setTypingAssistant) setTypingAssistant(false);
     setIntroState(prev => ({ 
       ...prev, 
       allMessagesRevealed: true,
       showContinue: true 
     }));
-
-    // Auto-focus for immediate interaction
     setTimeout(() => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-      }
+      if (inputRef.current) inputRef.current.focus();
     }, 200);
   }, [setTypingAssistant]);
 
-  // Format session start time
+  // Format the session start time for display
   const formatStartTime = useCallback(() => {
     return currentTime.toLocaleString('en-US', {
       weekday: 'long',
@@ -205,7 +169,7 @@ Are you ready to begin your journey?`;
     });
   }, [currentTime]);
 
-  // Cleanup on unmount
+  // Cleanup any pending timeouts on unmount
   useEffect(() => {
     return () => {
       clearTimeout(continueTimeoutRef.current);
@@ -214,7 +178,7 @@ Are you ready to begin your journey?`;
 
   return (
     <div className="intro-container w-full max-w-none">
-      {/* Enhanced Terminal Session Header */}
+      {/* Terminal session header with session info */}
       <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
         <div className="text-center mb-4">
           <div className="text-green-300 text-lg font-bold mb-2">
@@ -227,7 +191,6 @@ Are you ready to begin your journey?`;
             ╰─────────────────────────────────────────────────────╯
           </div>
         </div>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-1">
             <div className="text-green-500">
@@ -254,7 +217,7 @@ Are you ready to begin your journey?`;
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading spinner and message */}
       {introState.loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -271,7 +234,7 @@ Are you ready to begin your journey?`;
         </div>
       )}
 
-      {/* Error State with Retry */}
+      {/* Error message and retry button */}
       {introState.error && (
         <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 my-6">
           <div className="flex items-start space-x-3">
@@ -297,7 +260,7 @@ Are you ready to begin your journey?`;
         </div>
       )}
 
-      {/* Main Story Content */}
+      {/* Main intro story and continue interface */}
       {!introState.loading && (
         <>
           <TerminalMessages
@@ -315,14 +278,13 @@ Are you ready to begin your journey?`;
             className="intro-messages"
           />
 
-          {/* Enhanced Continue Interface */}
+          {/* Continue button and advanced options */}
           {introState.showContinue && (
             <div className="mt-8 p-6 border border-green-600 rounded-lg bg-green-900/10">
               <div className="text-center">
                 <div className="text-green-300 text-xl font-bold mb-4 animate-pulse">
                   ⚡ Ready to Begin Your Journey? ⚡
                 </div>
-                
                 <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6 mb-6">
                   <button
                     onClick={handleContinue}
@@ -335,12 +297,10 @@ Are you ready to begin your journey?`;
                     </span>
                     <div className="absolute inset-0 rounded-lg bg-green-400 opacity-0 group-hover:opacity-10 transition-opacity"></div>
                   </button>
-                  
                   <div className="text-green-500 text-sm">
                     or press <kbd className="px-2 py-1 bg-gray-800 border border-green-600 rounded">ENTER</kbd>
                   </div>
                 </div>
-
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-green-400">
                   <div className="flex items-center justify-center space-x-2">
                     <span>📚</span>
@@ -355,8 +315,7 @@ Are you ready to begin your journey?`;
                     <span>Progress Tracking</span>
                   </div>
                 </div>
-
-                {/* Advanced Options */}
+                {/* Advanced options and tips */}
                 <details className="mt-6 text-left">
                   <summary className="text-green-500 cursor-pointer hover:text-green-400 text-sm">
                     🔧 Advanced Options
@@ -388,7 +347,7 @@ Are you ready to begin your journey?`;
         </>
       )}
 
-      {/* Hidden Input for Focus Management */}
+      {/* Hidden input for keyboard focus management */}
       <input
         ref={inputRef}
         style={{ opacity: 0, height: 0, pointerEvents: 'none' }}
@@ -396,7 +355,6 @@ Are you ready to begin your journey?`;
         readOnly
         aria-label="Continue to next section"
       />
-      
       <div ref={bottomRef} />
     </div>
   );

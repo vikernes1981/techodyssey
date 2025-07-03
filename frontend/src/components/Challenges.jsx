@@ -1,15 +1,9 @@
-// components/Challenges.jsx - FIXED VERSION
-
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-/**
- * Enterprise-grade challenge selection component  
- * Features: Unique intro content, enhanced UI, no content duplication
- */
 export default function Challenges({ 
   chapterId, 
   onSelectChallenge, 
@@ -33,7 +27,7 @@ export default function Challenges({
   const scrollContainerRef = useRef(null);
   const bottomRef = useRef(null);
 
-  // Enhanced challenges loading with unique content
+  // Load challenges and intro message when chapterId changes
   useEffect(() => {
     if (!chapterId) return;
 
@@ -45,25 +39,19 @@ export default function Challenges({
           timeout: 8000
         });
 
-        // FIX: Properly handle nested response structure
-        console.log('Raw challenges response:', response.data);
-        
+        // Normalize challenge data from backend
         let challengesData;
         if (response.data.challenges) {
-          // Backend returns { challenges: [...], chapterId: ..., count: X, timestamp: ... }
           challengesData = response.data.challenges;
         } else if (Array.isArray(response.data)) {
-          // Backend returns array directly
           challengesData = response.data;
         } else {
-          // Backend returns single object - wrap in array
           challengesData = [response.data];
         }
 
-        console.log('Processed challenges:', challengesData);
         setChallenges(challengesData);
 
-        // Create UNIQUE welcome message for challenges (not recycling story content)
+        // Generate unique welcome message for challenge selection
         let challengeWelcome;
         if (challengesData.length > 0) {
           const challengeList = challengesData.map((ch, idx) => 
@@ -122,8 +110,7 @@ Challenges will be available shortly. Check back soon! 🔄`;
         }
 
       } catch (error) {
-        console.error('Failed to load challenges:', error);
-        
+        // Handle loading errors and show fallback message
         let errorMessage = 'Failed to load challenges for this chapter.';
         if (error.code === 'ECONNABORTED') {
           errorMessage = 'Connection timeout. Please check your internet connection.';
@@ -135,7 +122,6 @@ Challenges will be available shortly. Check back soon! 🔄`;
           error: errorMessage 
         }));
 
-        // Fallback content with unique message
         const fallbackMessage = `⚠️ Connection Error - Limited Challenge Content
 
 Unable to load full challenge data from server. 
@@ -165,7 +151,7 @@ You can still practice with available offline content.`;
     loadChallenges();
   }, [chapterId, setTypingAssistant]);
 
-  // Helper functions for unique content generation
+  // Map chapterId to human-readable chapter name
   const getChapterName = (id) => {
     const chapterNames = {
       'chapter_1': 'Local Storage Management',
@@ -177,6 +163,7 @@ You can still practice with available offline content.`;
     return chapterNames[id] || 'Advanced Linux Administration';
   };
 
+  // Determine challenge difficulty based on title
   const getChallengeDifficulty = (title) => {
     if (!title) return 'Beginner Level';
     const lowerTitle = title.toLowerCase();
@@ -189,7 +176,7 @@ You can still practice with available offline content.`;
     }
   };
 
-  // Handle typing completion
+  // Mark all messages as revealed and stop typing assistant
   const handleAssistantDone = useCallback(() => {
     if (setTypingAssistant) {
       setTypingAssistant(false);
@@ -197,10 +184,9 @@ You can still practice with available offline content.`;
     setChallengeState(prev => ({ ...prev, allMessagesRevealed: true }));
   }, [setTypingAssistant]);
 
-  // Enhanced challenge selection
+  // Handle challenge selection (click or keyboard)
   const handleChallengeSelect = useCallback(async (challengeId) => {
     setChallengeState(prev => ({ ...prev, selectedChallenge: challengeId }));
-    
     setTimeout(() => {
       if (onSelectChallenge) {
         onSelectChallenge(challengeId);
@@ -208,7 +194,7 @@ You can still practice with available offline content.`;
     }, 150);
   }, [onSelectChallenge]);
 
-  // Keyboard navigation
+  // Keyboard navigation for challenge selection
   useEffect(() => {
     if (!challengeState.allMessagesRevealed || !Array.isArray(challenges)) return;
 
@@ -227,7 +213,6 @@ You can still practice with available offline content.`;
             hoveredChallenge: challenges[nextIndex].id 
           }));
           break;
-          
         case 'ArrowUp':
         case 'k':
           e.preventDefault();
@@ -237,7 +222,6 @@ You can still practice with available offline content.`;
             hoveredChallenge: challenges[prevIndex].id 
           }));
           break;
-          
         case 'Enter':
           e.preventDefault();
           if (challengeState.hoveredChallenge) {
@@ -246,7 +230,6 @@ You can still practice with available offline content.`;
             handleChallengeSelect(challenges[0].id);
           }
           break;
-          
         case '1':
         case '2':
         case '3':
@@ -265,30 +248,27 @@ You can still practice with available offline content.`;
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [challengeState.allMessagesRevealed, challengeState.hoveredChallenge, challenges, handleChallengeSelect]);
 
-  // FIX: Memoized challenge statistics with enhanced safety checks
+  // Memoize challenge stats for rendering cards
   const challengeStats = useMemo(() => {
     if (!Array.isArray(challenges)) return [];
-    
     return challenges.map(challenge => {
-      // Safety checks for all properties
       const title = challenge?.title || challenge?.name || 'Unnamed Challenge';
       const briefing = challenge?.briefing || challenge?.story || 'Hands-on practical Linux administration challenge with real-world scenarios.';
-      
       return {
         ...challenge,
-        title, // Ensure title is always defined
-        briefing, // Ensure briefing is always defined
+        title,
+        briefing,
         difficulty: getChallengeDifficulty(title),
         estimatedTime: title.toLowerCase().includes('basic') ? '30-45 min' :
                       title.toLowerCase().includes('configure') ? '45-60 min' : '60-90 min',
-        missions: 5 // Estimated mission count
+        missions: 5
       };
     });
   }, [challenges]);
 
   return (
     <div className="challenges-container w-full max-w-none">
-      {/* Enhanced Header */}
+      {/* Header */}
       <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
         <div className="text-center">
           <div className="text-green-300 text-lg font-bold mb-2">
@@ -300,7 +280,7 @@ You can still practice with available offline content.`;
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading indicator */}
       {challengeState.loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -317,7 +297,7 @@ You can still practice with available offline content.`;
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error message */}
       {challengeState.error && (
         <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 my-6">
           <div className="flex items-start space-x-3">
@@ -340,9 +320,10 @@ You can still practice with available offline content.`;
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main content */}
       {!challengeState.loading && (
         <>
+          {/* Terminal-style intro and instructions */}
           <TerminalMessages
             messages={messages}
             typingAssistant={typingAssistant}
@@ -358,10 +339,10 @@ You can still practice with available offline content.`;
             className="challenges-messages"
           />
 
-          {/* Enhanced Challenge Selection */}
+          {/* Challenge selection grid */}
           {challengeState.allMessagesRevealed && challengeStats.length > 0 && (
             <div className="mt-8">
-              {/* Selection Instructions */}
+              {/* Instructions for selection */}
               <div className="mb-6 p-4 bg-green-900/20 border border-green-600 rounded-lg">
                 <div className="text-green-300 font-bold mb-2">⚔️ Challenge Selection</div>
                 <div className="text-green-400 text-sm space-y-1">
@@ -371,7 +352,7 @@ You can still practice with available offline content.`;
                 </div>
               </div>
 
-              {/* Challenge Cards */}
+              {/* Challenge cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {challengeStats.map((challenge, index) => {
                   const isSelected = challengeState.selectedChallenge === challenge.id;
@@ -399,19 +380,19 @@ You can still practice with available offline content.`;
                         hoveredChallenge: null 
                       }))}
                     >
-                      {/* Challenge Number */}
+                      {/* Challenge number badge */}
                       <div className="absolute top-3 left-3 w-8 h-8 bg-green-700 rounded-full flex items-center justify-center text-white font-bold text-sm">
                         {index + 1}
                       </div>
 
-                      {/* Loading Indicator */}
+                      {/* Loading spinner for selected challenge */}
                       {isSelected && (
                         <div className="absolute top-3 right-3">
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-green-400"></div>
                         </div>
                       )}
 
-                      {/* Challenge Content */}
+                      {/* Challenge details */}
                       <div className="ml-12">
                         <h3 className="text-green-300 font-bold text-lg mb-2">
                           {challenge.title}
@@ -421,7 +402,7 @@ You can still practice with available offline content.`;
                           {challenge.briefing}
                         </p>
 
-                        {/* Challenge Metadata */}
+                        {/* Challenge metadata */}
                         <div className="grid grid-cols-2 gap-4 text-xs">
                           <div>
                             <span className="text-green-500">Difficulty:</span>
@@ -441,7 +422,7 @@ You can still practice with available offline content.`;
                           </div>
                         </div>
 
-                        {/* Mission Count */}
+                        {/* Mission count */}
                         <div className="mt-3 text-xs">
                           <span className="text-green-500">Missions:</span>
                           <div className="text-green-400 font-bold">
@@ -449,7 +430,7 @@ You can still practice with available offline content.`;
                           </div>
                         </div>
 
-                        {/* Progress Bar */}
+                        {/* Progress bar animation on hover */}
                         <div className="mt-4 bg-gray-800 rounded-full h-2">
                           <div 
                             className="bg-green-600 h-2 rounded-full transition-all duration-300" 
@@ -458,14 +439,14 @@ You can still practice with available offline content.`;
                         </div>
                       </div>
 
-                      {/* Hover Effect */}
+                      {/* Subtle hover overlay */}
                       <div className="absolute inset-0 rounded-lg bg-green-400 opacity-0 group-hover:opacity-5 transition-opacity"></div>
                     </div>
                   );
                 })}
               </div>
 
-              {/* Quick Start */}
+              {/* Quick start button */}
               <div className="mt-8 text-center">
                 <button
                   onClick={() => challenges.length > 0 && handleChallengeSelect(challenges[0].id)}
@@ -475,7 +456,7 @@ You can still practice with available offline content.`;
                 </button>
               </div>
 
-              {/* Navigation Help */}
+              {/* Keyboard navigation help */}
               <div className="mt-6 text-center text-green-600 text-xs opacity-60">
                 Quick select: <kbd className="bg-gray-800 px-1 rounded">1-{challenges.length}</kbd> | 
                 Navigate: <kbd className="bg-gray-800 px-1 rounded mx-1">↑↓</kbd> | 
@@ -484,7 +465,7 @@ You can still practice with available offline content.`;
             </div>
           )}
 
-          {/* Empty State */}
+          {/* No challenges available */}
           {challengeState.allMessagesRevealed && challenges.length === 0 && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">⚔️</div>

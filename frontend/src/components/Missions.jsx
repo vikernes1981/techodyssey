@@ -1,9 +1,8 @@
-// components/Missions.jsx - PERMANENT FIX (No Duplicate API Calls)
-
 import { useEffect, useRef, useState, useCallback } from 'react';
 import axios from 'axios';
 import TerminalMessages from './TerminalMessages';
 
+// API base URL, fallback to localhost if not set in environment
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
 export default function Missions({ 
@@ -12,6 +11,7 @@ export default function Missions({
   skipCurrentTypingRef, 
   setTypingAssistant 
 }) {
+  // State for challenge info, messages, loading/error, and UI state
   const [challenge, setChallenge] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,31 +20,28 @@ export default function Missions({
   const [allMessagesRevealed, setAllMessagesRevealed] = useState(false);
   const [loadedChallengeId, setLoadedChallengeId] = useState(null);
   
+  // Refs for scrolling, aborting requests, and loading state
   const scrollContainerRef = useRef(null);
   const bottomRef = useRef(null);
   const abortControllerRef = useRef(null);
+  const isLoadingRef = useRef(false);
 
-  // Memoized load function to prevent unnecessary calls
+  // Loads challenge and missions data from API
   const loadChallengeData = useCallback(async (currentChallengeId) => {
-    // Prevent duplicate calls for the same challenge
-    if (loadedChallengeId === currentChallengeId || loading) {
-      return;
+    if (isLoadingRef.current) {
+      return; // Prevent duplicate loads
     }
-
-    // Cancel any existing request
+    // Abort any ongoing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-
-    // Create new abort controller
     abortControllerRef.current = new AbortController();
-    
     try {
+      isLoadingRef.current = true;
       setLoading(true);
       setError(null);
-      console.log(`Loading challenge data for: ${currentChallengeId}`);
 
-      // Single API call to get missions (includes challenge info)
+      // Fetch missions for the challenge
       const missionsResponse = await axios.get(
         `${API_BASE_URL}/rhcsa-game/missions/${currentChallengeId}`,
         { 
@@ -53,14 +50,12 @@ export default function Missions({
         }
       );
 
-      console.log('Missions API response:', missionsResponse.data);
-
-      // Extract missions data
+      // Missions data fallback handling
       const missionsData = missionsResponse.data.missions || 
                           missionsResponse.data || 
                           [];
 
-      // Get challenge info from missions endpoint or use fallback
+      // Default challenge info
       const challengeInfo = {
         id: currentChallengeId,
         title: `Challenge ${currentChallengeId.split('_')[1] || '1'}`,
@@ -68,7 +63,7 @@ export default function Missions({
         options: missionsData
       };
 
-      // If we have missions, try to get additional challenge details
+      // Optionally fetch challenge metadata (title, briefing)
       if (missionsData.length > 0) {
         try {
           const challengeResponse = await axios.get(
@@ -85,15 +80,14 @@ export default function Missions({
             challengeInfo.briefing = challengeData.briefing || challengeData.prompt || challengeInfo.briefing;
           }
         } catch (challengeError) {
-          // Non-critical error - continue with missions data
-          console.warn('Could not load challenge details:', challengeError.message);
+          // Ignore challenge metadata errors, fallback to defaults
         }
       }
 
       setChallenge(challengeInfo);
       setLoadedChallengeId(currentChallengeId);
 
-      // Create welcome message
+      // Compose welcome message for the terminal
       const welcomeMessage = `🎯 Mission Selection
 
 ${challengeInfo.briefing}
@@ -121,13 +115,14 @@ ${missionsData.length > 0 ? 'Select a mission to begin:' : 'No missions are curr
       }
 
     } catch (error) {
+      // Handle abort/cancel separately
       if (error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
-        console.log('Request was cancelled');
+        isLoadingRef.current = false;
+        setLoading(false);
         return;
       }
 
-      console.error('Error loading challenge/missions:', error);
-      
+      // Compose error message based on error type
       let errorMessage = '⚠️ Error loading missions for this challenge.';
       if (error.response?.status === 429) {
         errorMessage = '⚠️ Too many requests. Please wait a moment before trying again.';
@@ -157,26 +152,31 @@ Debug info: ${error.message}`,
         setTypingAssistant(true);
       }
     } finally {
+      isLoadingRef.current = false;
       setLoading(false);
     }
-  }, []); // FIXED: Empty dependencies to prevent recreation
 
-  // Only load when challengeId changes and is valid
+  }, [setTypingAssistant]);
+
+
+  // Effect: Load challenge data when challengeId changes
   useEffect(() => {
-    if (!challengeId) {
-      return;
+    if (!challengeId) return;
+    if (loadedChallengeId !== challengeId && !isLoadingRef.current) {
+      loadChallengeData(challengeId);
     }
-
-    loadChallengeData(challengeId);
-
-    // Cleanup function
+    // Cleanup: abort any ongoing request on unmount or challengeId change
     return () => {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
+      isLoadingRef.current = false;
     };
-  }, [challengeId]); // FIXED: Only depend on challengeId
 
+  }, [challengeId]);
+
+
+  // Called when assistant finishes typing all messages
   const handleAssistantDone = useCallback(() => {
     setTypingAssistantState(false);
     if (setTypingAssistant) {
@@ -185,9 +185,20 @@ Debug info: ${error.message}`,
     setAllMessagesRevealed(true);
   }, [setTypingAssistant]);
 
+  // Retry handler for error state
+  const handleRetry = useCallback(() => {
+    setError(null);
+    setLoadedChallengeId(null);
+    isLoadingRef.current = false;
+    setLoading(false);
+    setTimeout(() => {
+      loadChallengeData(challengeId);
+    }, 100);
+  }, [challengeId]);
+
   return (
     <div className="missions-container w-full max-w-none">
-      {/* Enhanced Header */}
+      {/* Header */}
       <div className="border border-green-600 rounded-lg p-4 mb-6 bg-gray-900/30">
         <div className="text-center">
           <div className="text-green-300 text-lg font-bold mb-2">
@@ -199,7 +210,7 @@ Debug info: ${error.message}`,
         </div>
       </div>
 
-      {/* Loading State */}
+      {/* Loading spinner and cancel button */}
       {loading && (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
@@ -209,11 +220,27 @@ Debug info: ${error.message}`,
             <div className="text-green-500 animate-pulse">
               Loading missions...
             </div>
+            <div className="text-green-600 text-sm mt-2">
+              Challenge ID: {challengeId}
+            </div>
+            <button 
+              onClick={() => {
+                if (abortControllerRef.current) {
+                  abortControllerRef.current.abort();
+                }
+                isLoadingRef.current = false;
+                setLoading(false);
+                setError('Loading cancelled by user');
+              }}
+              className="mt-4 text-xs text-green-600 hover:text-green-400 underline"
+            >
+              Cancel Loading
+            </button>
           </div>
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error display with retry/refresh options */}
       {error && !loading && (
         <div className="bg-red-900/20 border border-red-600 rounded-lg p-6 my-6">
           <div className="flex items-start space-x-3">
@@ -225,24 +252,29 @@ Debug info: ${error.message}`,
               <div className="text-red-300 mb-4">
                 {error}
               </div>
-              <button 
-                onClick={() => {
-                  setError(null);
-                  setLoadedChallengeId(null);
-                  loadChallengeData(challengeId);
-                }}
-                className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors text-sm font-bold"
-              >
-                🔄 Retry Loading
-              </button>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={handleRetry}
+                  className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors text-sm font-bold"
+                >
+                  🔄 Retry Loading
+                </button>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded transition-colors text-sm"
+                >
+                  🔄 Refresh Page
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main content: terminal messages and mission selection */}
       {!loading && !error && (
         <>
+          {/* Terminal-style assistant messages */}
           <TerminalMessages
             messages={messages}
             typingAssistant={typingAssistant}
@@ -256,18 +288,15 @@ Debug info: ${error.message}`,
             className="missions-messages"
           />
           
-          {/* Mission Selection */}
+          {/* Mission selection grid, shown after assistant is done */}
           {allMessagesRevealed && challenge && challenge.options && challenge.options.length > 0 && (
             <div className="mt-8">
-              {/* Instructions */}
               <div className="mb-6 p-4 bg-green-900/20 border border-green-600 rounded-lg">
                 <div className="text-green-300 font-bold mb-2">🚀 Available Missions</div>
                 <div className="text-green-400 text-sm">
                   Select any mission to start your hands-on training
                 </div>
               </div>
-
-              {/* Mission Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {challenge.options.map((mission, index) => (
                   <div
@@ -275,23 +304,19 @@ Debug info: ${error.message}`,
                     className="group border-2 border-green-600 rounded-lg p-4 cursor-pointer transition-all duration-200 hover:border-green-500 hover:bg-green-900/10 hover:shadow-md bg-gray-900/20"
                     onClick={() => onSelectMission(mission)}
                   >
-                    {/* Mission Content */}
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-green-700 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                         {index + 1}
                       </div>
-                      
                       <div className="flex-1">
                         <h3 className="text-green-300 font-bold text-lg mb-2">
                           {mission.title || mission.name || `Mission ${index + 1}`}
                         </h3>
-                        
                         {mission.action && (
                           <p className="text-green-400 text-sm mb-3 leading-relaxed">
                             <span className="text-green-500 font-semibold">Task:</span> {mission.action}
                           </p>
                         )}
-                        
                         <div className="flex items-center justify-between text-xs">
                           <div className="flex items-center space-x-4">
                             <div>
@@ -303,7 +328,6 @@ Debug info: ${error.message}`,
                               <span className="text-green-400 font-bold ml-1">5-10 min</span>
                             </div>
                           </div>
-                          
                           <div className="text-green-300 group-hover:text-green-200 font-bold">
                             Start →
                           </div>
@@ -313,8 +337,7 @@ Debug info: ${error.message}`,
                   </div>
                 ))}
               </div>
-
-              {/* Quick Start */}
+              {/* Quick start button for first mission */}
               <div className="mt-8 text-center">
                 <button
                   onClick={() => challenge.options.length > 0 && onSelectMission(challenge.options[0])}
@@ -326,7 +349,7 @@ Debug info: ${error.message}`,
             </div>
           )}
 
-          {/* Empty State */}
+          {/* No missions available state */}
           {allMessagesRevealed && challenge && (!challenge.options || challenge.options.length === 0) && (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">🎯</div>
@@ -337,10 +360,7 @@ Debug info: ${error.message}`,
                 Missions for this challenge are being prepared.
               </div>
               <button 
-                onClick={() => {
-                  setLoadedChallengeId(null);
-                  loadChallengeData(challengeId);
-                }}
+                onClick={handleRetry}
                 className="bg-green-700 hover:bg-green-600 text-white px-6 py-3 rounded font-bold"
               >
                 🔄 Refresh Missions
@@ -350,6 +370,7 @@ Debug info: ${error.message}`,
         </>
       )}
 
+      {/* Dummy div for scroll-to-bottom reference */}
       <div ref={bottomRef} />
     </div>
   );

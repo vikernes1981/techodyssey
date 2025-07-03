@@ -9,6 +9,7 @@ function Header({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Handles navigation and closes mobile menu
   const handleNav = (path) => {
     navigate(path);
     setMenuOpen(false);
@@ -16,8 +17,7 @@ function Header({
 
   return (
     <header className="fixed top-0 left-0 w-full pt-0 z-20 bg-black border-b border-green-700">
-
-      {/* Mobile: Hamburger Button */}
+      {/* Hamburger menu button for mobile screens */}
       <div className="sm:hidden">
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -27,7 +27,7 @@ function Header({
         </button>
       </div>
 
-      {/* Desktop: Full menu */}
+      {/* Navigation buttons for desktop screens */}
       <div className="hidden sm:inline-block ml-1 align-middle">
         <button
           onClick={() => navigate('/')}
@@ -43,7 +43,8 @@ function Header({
           Rhel Game
         </button>
       </div>
-      {/* Mobile dropdown */}
+
+      {/* Dropdown menu for mobile navigation */}
       {menuOpen && (
         <div className="sm:hidden absolute top-16 right-4 bg-gray-700 rounded shadow-md p-4 space-y-2 z-50 w-48">
           <button
@@ -72,4 +73,3 @@ Header.propTypes = {
 };
 
 export default Header;
-

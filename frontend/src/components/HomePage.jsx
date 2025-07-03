@@ -14,13 +14,13 @@ const HomePage = () => {
   const [terminalFocused, setTerminalFocused] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update time every second for terminal header
+  // Update terminal header time every second
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Blinking cursor effect
+  // Blinking cursor animation
   useEffect(() => {
     const cursorInterval = setInterval(() => {
       setShowCursor(prev => !prev);
@@ -28,7 +28,7 @@ const HomePage = () => {
     return () => clearInterval(cursorInterval);
   }, []);
 
-  // Handle project selection with error handling
+  // Open project modal by id, with error handling
   const handleRun = useCallback((id) => {
     try {
       const project = projects.find((p) => p.id === id);
@@ -43,7 +43,7 @@ const HomePage = () => {
     }
   }, []);
 
-  // Enhanced Q&A data with better descriptions
+  // Terminal Q&A sequence
   const QA = [
     { user: "whoami", assistant: "Iordanis Tsitsirikos" },
     { user: "role", assistant: "Backend Developer & Linux Enthusiast" },
@@ -58,7 +58,7 @@ const HomePage = () => {
     { user: "ls projects/", assistant: "Listing all available projects..." },
   ];
 
-  // Enhanced typing effect with variable speed
+  // Typing animation for user input and assistant response
   useEffect(() => {
     const current = QA[step];
     if (!current) {
@@ -81,30 +81,28 @@ const HomePage = () => {
           setStep((prev) => prev + 1);
         }, 800);
       }
-    }, 50 + Math.random() * 40); // Variable typing speed for human feel
+    }, 50 + Math.random() * 40);
 
     return () => clearInterval(typeInterval);
   }, [step]);
 
-  // Smart auto-scroll - only during typing, not when user is reading
+  // Auto-scroll terminal during typing animation
   useEffect(() => {
     if (terminalRef.current && !done) {
-      // Only auto-scroll during the animation phase
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [step, assistantTyping, done]); // Only trigger on animation changes
+  }, [step, assistantTyping, done]);
 
-  // Handle terminal focus
+  // Focus terminal on click
   const handleTerminalClick = () => {
     setTerminalFocused(true);
   };
 
-  // Handle keyboard shortcuts
+  // Keyboard shortcuts: Ctrl+C (reserved), Escape (close modal)
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.ctrlKey && e.key === 'c') {
         e.preventDefault();
-        // Could add interrupt functionality here
       }
       if (e.key === 'Escape') {
         setModalOpen(false);
@@ -115,6 +113,7 @@ const HomePage = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Format time for terminal header
   const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', { 
       hour12: false, 
@@ -124,38 +123,37 @@ const HomePage = () => {
     });
   };
 
+  // Terminal prompt string
   const getCurrentPrompt = () => {
     return `iordanis@portfolio:~$ `;
   };
 
   return (
     <div className="min-h-screen bg-gray-900 p-2 md:p-4 font-mono">
-      {/* Terminal Window Frame - Now Much Larger */}
+      {/* Terminal Window */}
       <div className="h-[calc(100vh-1rem)] md:h-[calc(100vh-2rem)] bg-black rounded-lg shadow-2xl border border-gray-700 overflow-hidden">
         
-        {/* Terminal Header/Title Bar */}
+        {/* Terminal Header */}
         <div className="bg-gray-800 px-4 py-2 flex items-center justify-between border-b border-gray-700">
           <div className="flex items-center space-x-2">
-            {/* Traffic Light Buttons */}
+            {/* Window control buttons */}
             <div className="flex space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full hover:bg-red-400 cursor-pointer transition-colors"></div>
               <div className="w-3 h-3 bg-yellow-500 rounded-full hover:bg-yellow-400 cursor-pointer transition-colors"></div>
               <div className="w-3 h-3 bg-green-500 rounded-full hover:bg-green-400 cursor-pointer transition-colors"></div>
             </div>
-            
-            {/* Terminal Title */}
+            {/* Terminal title */}
             <span className="text-gray-300 text-sm ml-4">
               Terminal — iordanis@portfolio: Portfolio
             </span>
           </div>
-          
-          {/* Time Display */}
+          {/* Current time */}
           <div className="text-gray-400 text-xs hidden sm:block">
             {formatTime(currentTime)}
           </div>
         </div>
 
-        {/* Terminal Content - Now Takes Full Available Height */}
+        {/* Terminal Content */}
         <div 
           ref={terminalRef} 
           onClick={handleTerminalClick}
@@ -181,10 +179,10 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Interactive Q&A Session */}
+          {/* Q&A Session */}
           {QA.slice(0, step + 1).map((qa, index) => (
             <div key={index} className="mb-4 w-full">
-              {/* User Input Line */}
+              {/* User input line */}
               <div className="mb-2 flex items-center flex-wrap">
                 <span className="text-green-300 text-sm md:text-base">
                   {getCurrentPrompt()}
@@ -196,8 +194,7 @@ const HomePage = () => {
                   )}
                 </span>
               </div>
-              
-              {/* Assistant Response */}
+              {/* Assistant response */}
               {index < step && (
                 <div className="ml-4 md:ml-8 text-green-500 whitespace-pre-wrap text-sm md:text-base leading-relaxed">
                   {qa.assistant}
@@ -214,7 +211,7 @@ const HomePage = () => {
           {/* Projects Listing */}
           {done && (
             <div className="mt-8">
-              {/* Projects Header */}
+              {/* Projects directory header */}
               <div className="mb-6">
                 <div className="text-green-300 text-sm md:text-base mb-2">
                   {getCurrentPrompt()}ls -la projects/
@@ -225,7 +222,7 @@ const HomePage = () => {
                 </div>
               </div>
 
-              {/* Enhanced Project List */}
+              {/* Project list with run buttons and stack preview */}
               <div className="space-y-3">
                 {projects.map((proj, i) => (
                   <div key={i} className="group">
@@ -250,8 +247,7 @@ const HomePage = () => {
                           </button>
                         </div>
                       </div>
-                      
-                      {/* Stack Preview on Hover */}
+                      {/* Stack preview on hover */}
                       <div className="ml-0 md:ml-20 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         <span className="text-green-600 text-xs">
                           stack: {proj.stack.join(' • ')}
@@ -262,7 +258,7 @@ const HomePage = () => {
                 ))}
               </div>
 
-              {/* Footer Commands */}
+              {/* Terminal footer with available commands */}
               <div className="mt-8 pt-6 border-t border-green-900">
                 <div className="text-green-300 text-sm md:text-base mb-2">
                   {getCurrentPrompt()}
@@ -291,7 +287,7 @@ const HomePage = () => {
         </div>
       </div>
 
-      {/* Project Modal */}
+      {/* Project details modal */}
       <ProjectModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}

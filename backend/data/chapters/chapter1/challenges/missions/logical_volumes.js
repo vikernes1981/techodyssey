@@ -3,6 +3,7 @@ const logical_volumes = [
         id: "create_logical_volume",
         title: "Create Logical Volume",
         action: "create logical volume",
+        // Scenario: User needs to add new storage by creating a logical volume
         intro: `As you assess the system's storage requirements, you identify the need for additional storage space to accommodate growing data.
 With careful planning, you decide to create new logical volumes to address this need and enhance the system's storage capacity.
 You issue commands to create new logical volumes, specifying the size and characteristics of each volume.
@@ -11,7 +12,7 @@ With each logical volume successfully created, you feel a sense of accomplishmen
 You review the details of the new volumes, confirming that they meet the system's requirements and will effectively serve their intended purposes.
 As the system incorporates the new volumes, you envision the possibilities they bring for storing and managing data.
 With each volume strategically allocated, you're confident in the system's ability to handle current and future data needs.`,
-        solution: "lvcreate -L 1G -n lv1 vg1",
+        solution: "lvcreate -L 1G -n lv1 vg1", // Command to create a 1GB logical volume named lv1 in volume group vg1
         hints: [
             "Hint: Use 'lvcreate -L 1G -n lv1 vg1' to create a logical volume."
         ],
@@ -34,6 +35,7 @@ As you prepare for the next challenge, you do so with renewed confidence, knowin
         id: "view_logical_volumes",
         title: "View Logical Volumes",
         action: "view logical volumes",
+        // Scenario: User needs to check the current logical volumes and their details
         intro: `With the system optimization underway, you recognize the importance of regularly monitoring the status of logical volumes.
 To gain insights into the current configuration, you decide to view the details of all logical volumes.
 You issue commands to view the details of all logical volumes, seeking information on their sizes, usage, and mount points.
@@ -42,7 +44,7 @@ As you review the details of each logical volume, you gain a deeper understandin
 You make mental notes of any areas that may require further optimization or adjustment.
 Armed with this information, you feel more confident in your ability to maintain the system's stability and performance.
 Regular monitoring and analysis of logical volumes will ensure that the system remains resilient to potential challenges.`,
-        solution: "lvs",
+        solution: "lvs", // Command to list all logical volumes
         hints: [
             "Hint: Use 'lvs' to view Logical Volumes."
         ],
@@ -65,6 +67,7 @@ As you prepare to tackle the next task, you do so with renewed confidence, knowi
         id: "extend_logical_volume",
         title: "Extend Logical Volume",
         action: "extend logical volume",
+        // Scenario: User needs to increase the size of an existing logical volume
         intro: `As you continue to monitor the system's storage usage, you notice that certain volumes are approaching capacity.
 To prevent potential issues and accommodate future growth, you decide to extend these volumes to increase their capacity.
 You issue commands to extend the identified logical volumes, carefully specifying the additional size to be allocated.
@@ -73,7 +76,7 @@ With each volume successfully extended, you feel a sense of relief, knowing that
 You review the updated volumes, confirming that they now have the capacity to accommodate future data growth.
 As the system adapts to the expanded volumes, you marvel at the flexibility of modern storage technologies.
 By extending volumes seamlessly, you're able to ensure the system's readiness for evolving storage demands.`,
-        solution: "lvextend -L+1G /dev/vg1/lv1",
+        solution: "lvextend -L+1G /dev/vg1/lv1", // Command to extend lv1 by 1GB
         hints: [
             "Hint: Use 'lvextend -L+1G /dev/vg1/lv1' to extend a Logical Volume by 1GB."
         ],
@@ -94,6 +97,7 @@ As you prepare for the next challenge, you do so with renewed confidence, knowin
         id: "resize_logical_volume",
         title: "Resize Logical Volume",
         action: "resize logical volume",
+        // Scenario: User needs to adjust the size of a logical volume (increase or decrease)
         intro: `As you delve deeper into system optimization, you realize the need to adjust the sizes of certain logical volumes.
 With careful planning, you decide to resize these volumes to better allocate storage resources.
 You issue commands to resize the identified logical volumes, ensuring that the changes are made smoothly and without data loss.
@@ -102,7 +106,7 @@ With the resizing of the logical volumes complete, you feel a sense of satisfact
 You carefully review the updated volumes, ensuring that the system's resources are distributed efficiently.
 As the system adapts to the resized volumes, you marvel at the flexibility of modern storage technologies.
 By adjusting volumes on-the-fly, you're able to meet changing demands and maintain optimal performance.`,
-        solution: "lvresize -L +1G /dev/vg1/lv1",
+        solution: "lvresize -L +1G /dev/vg1/lv1", // Command to resize lv1 by increasing its size by 1GB
         hints: [
             "Hint: Use 'lvresize -L +1G /dev/vg1/lv1' to resize a logical volume."
         ],
@@ -125,6 +129,7 @@ As you prepare for the next challenge, you're filled with confidence, knowing th
         id: "remove_logical_volume",
         title: "Remove Logical Volume",
         action: "remove logical volume",
+        // Scenario: User needs to delete an unnecessary logical volume to free up space
         intro: `However, as you continue to optimize the system, you realize that some logical volumes are no longer needed.
 With careful consideration, you decide to remove these unnecessary volumes to free up storage space.
 You issue commands to remove the identified logical volumes, double-checking to ensure that no critical data will be lost.
@@ -133,7 +138,7 @@ With each unnecessary logical volume removed, you feel a sense of liberation, kn
 You carefully review the remaining volumes, ensuring that the system's storage is optimized for maximum efficiency.
 As the system undergoes this transformation, you reflect on the importance of maintaining a lean and efficient infrastructure.
 By removing unnecessary clutter, you're ensuring that the system remains agile and responsive to future challenges.`,
-        solution: "lvremove /dev/vg1/lv1",
+        solution: "lvremove /dev/vg1/lv1", // Command to remove lv1 from volume group vg1
         hints: [
             "Hint: Use 'lvremove /dev/vg1/lv1' to remove a logical volume."
         ],
@@ -154,4 +159,5 @@ As you prepare for the next challenge, you're filled with confidence, knowing th
     }
 ];
 
+// Export the logical_volumes array for use in other modules
 export default logical_volumes;

@@ -1,4 +1,4 @@
-// backend/data/challenge1/partitions_filesystem.js
+// Missions for managing partitions and filesystems in a Linux environment
 
 const partitions_filesystem = [
   {
@@ -138,7 +138,7 @@ With each passing moment, your confidence grows, knowing that you're one step cl
     outro: "",
   },
 
-  // Split get UUIDs into two missions for interactive experience
+  // Mission to retrieve UUIDs of block devices
   {
     id: "blkid",
     title: "Get UUIDs",
@@ -170,6 +170,7 @@ With this data in hand, you're better equipped to navigate the intricacies of th
     nextMissionId: "copy_uuid_to_fstab"
   },
 
+  // Mission to copy UUID to /etc/fstab for persistent mounting
   {
     id: "copy_uuid_to_fstab",
     title: "Copy UUID to fstab",
